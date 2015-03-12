@@ -1,0 +1,19 @@
+<!--###########################################################################
+#                                                                              #
+#                                                                              #
+#                            A U T H E N T I C A T E                           #
+#                                                                              #
+#                                                                              #
+############################################################################ -->
+
+<!-- <div ng-controller="AuthCtrl" class="list-inset item-image"> -->
+<div ng-controller="AuthCtrl">
+  <!-- Users -->
+  <div ng-repeat="user in users" ng-click="login(user, rememberMe)" class="list card">
+    <a class="item item-stable item-icon-left item-icon-right">
+      <i class="item-avatar-left"><img ng-src={{imgFilepathUser}}{{user.filename}} /></i>
+      {{user.firstName}} {{user.lastName}}
+      <span class="badge badge-assertive">0</span>
+    </a>
+  </div>
+</div>

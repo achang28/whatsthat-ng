@@ -1,0 +1,40 @@
+"users": [
+  {
+    "iid": "0",
+    "firstName": "Nobody",
+    "middleName": "",
+    "lastName": "Nobody",
+    "email": "nobody@whatsthat.com",
+    "filename": "",
+    "items": [],
+    "votes": []
+  }, {
+    "iid": "1",
+    "firstName": "Jeffrey",
+    "middleName": "",
+    "lastName": "Priebe",
+    "email": "jpriebe@whatsthat.com",
+    "filename": "jpriebe.jpg",
+    "items": ["0"],
+    "votes": [
+      {
+        "itemId": "0",
+        "direction": "up"
+      }
+    ]
+  }, {
+    "iid": "2",
+    "firstName": "Anthony",
+    "middleName": "",
+    "lastName": "Ettinger",
+    "email": "aettinger@whatsthat.com",
+    "filename": "aettinger.png",
+    "items": ["0"],
+    "votes": [
+      {
+        "itemId": "0",
+        "direction": "up"
+      }
+    ]
+  }
+]

@@ -1,0 +1,27 @@
+<div ng-controller="SummaryCtrl">
+  <div user class="item item-balanced" model="userInfo"></div>
+  <div class="list card" ng-repeat="item in items" ng-click="openDetails(item)">
+    <a class="item item-stable row" href="#">
+      <!-- User || site Photo -->
+      <div class="col col-30 item-thumbnail-left">
+        <img ng-src={{imgFilepathItem}}{{item.filename}} />
+      </div>
+
+      <div class="col col-55">
+        <b>{{item.name}}</b><br />
+        
+        <!-- User || Site Info -->
+        <i author model={{item.authorId}} pref="full name"></i>
+        <i class="assertive">
+          {{item.created | timeAgo}}<br />
+        <i>
+      </div>
+
+      <!-- notes && media icons -->
+      <div class="col col-10">
+        <i class="icon balanced super-thumbsup"> {{item.votes.up}}</i><br />
+        <i class="icon assertive super-thumbsdown"> {{item.votes.down}}</i>
+      </div>
+    </a>
+  </div>
+</div>

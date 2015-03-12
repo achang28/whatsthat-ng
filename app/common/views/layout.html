@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <title><%= yield.viewName %></title>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOJ-dkcU-lwAdfUT4nywV1qrp-RdxwP44&sensor=true"></script>
+  <link rel="stylesheet" href="/app/Common/stylesheets/application.css" />
+  <link rel="stylesheet" href="/components/supersonic/css/supersonic.min.css" />
+  <link rel="import" href="/components/supersonic/components/import.html" />
+  <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.min.css" />
+  
+  <script src="/components/jquery/dist/jquery.min.js"></script>
+  <script src="/components/lodash/lodash.min.js"></script>
+  <script src="/components/momentjs/min/moment.min.js"></script>
+  <script src="/components/firebase/firebase.js"></script>
+  <script src="/components/angular/angular.min.js"></script>
+  <script src="/components/angular-animate/angular-animate.min.js"></script>
+  <script src="/components/angular-sanitize/angular-sanitize.min.js"></script>
+  <script src="/components/angularfire/dist/angularfire.min.js"></script>
+  
+  <script src="http://localhost/cordova.js"></script>
+  <script src="/components/steroids-js/steroids.min.js"></script>
+  <script src="/components/supersonic/supersonic.min.js"></script>
+  <script src="/components/webcomponentsjs/webcomponents.min.js"></script>
+
+  <% _.each(yield.modules, function(module) { %>
+  <script src="/app/<%= module %>.js"></script>
+  <% }); %>
+</head>
+<body ng-app="<%= yield.moduleName %>">
+
+<%= yield.view %>
+
+</body>
+</html>
