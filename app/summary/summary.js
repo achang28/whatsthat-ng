@@ -6,12 +6,12 @@ angular.module('summary', ['common'])
       qItems: $q.defer()
     });
 
-    Nav.initPreloadView("details");
+    // Nav.initPreloadView("details");
     Nav.initPreloadView("modal");
 
     supersonic.device.ready.then( function() {
       console.log("ready for summary");
-      Nav.startView("details");
+      // Nav.startView("details");
       Nav.startView("modal");
     });
   }])

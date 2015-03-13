@@ -23,7 +23,7 @@ angular.module('details', ['common'])
       console.log("ready for details");
       supersonic.data.channel("DOMReady").publish();
       Nav.startView("modal");
-    });  
+    });
   })
   .controller("DetailsCtrl", ["$q","$rootScope","$scope","FB","Host","Item","Nav"
                             ,"Position","supersonic",function($q,$rootScope,$scope

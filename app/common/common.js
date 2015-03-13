@@ -15,8 +15,7 @@ angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
         lat: 0.0,
         long: 0.0,
         latitude: 0.0,
-        longitude: 0.0,
-        timestamp: ""
+        longitude: 0.0
       },
       qUserInfo: $q.defer()
     });
@@ -79,7 +78,7 @@ angular.module('Services', ['ngSanitize'])
       }
     };
   })
-  .factory('Host', function() {
+  .factory('Host', function($http, $q) {
     var _protocols = ["http","https"]
       ,_bucket = "whatsthat"
       ,_hostnames = ["://127.0.0.1","://s3-us-west-1.amazonaws.com/"]
@@ -104,6 +103,26 @@ angular.module('Services', ['ngSanitize'])
         // var filepath = this.getHostURL() +_bucket +"" +model +size +"/" +direction +"/";
         var filepath = this.getHostURL() +_bucket +"/" +model +"/" +size +"/";
         return filepath;
+      },
+
+      retrieveS3Policy: function() {
+        var qS3Policy = $q.defer();
+
+        $http({
+          url: 'http://towimg.martiangold.com/s3-upload.php?bucket=whatsthat',
+          method: "GET",
+          data: {"bucket": "whatsthat"},
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          }
+        }).success(function(data, status, headers, config) {
+          qS3Policy.resolve(data);
+        }).error(function(data, status, headers, config) {
+          qS3Policy.reject(data);
+        });
+
+        return qS3Policy.promise;
       },
 
       uploadFile: function(fileURL, destination) {
@@ -143,11 +162,26 @@ angular.module('Services', ['ngSanitize'])
         _items = items;
       },
 
+      generateImgId: function(timestamp,userId,fileType) {
+        return timestamp +"-" +userId +"." +fileType;
+      },
+
       publishItem: function(newItem) {
         var itemsRef = _rootRef.child("items");
         return itemsRef.push(newItem, function(err) {
           console.log(err ? err : "Successfully Set");
         });
+      },
+
+      refreshPicParams: function() {
+        return {
+          dbReord: {
+            created: null,
+            geoPoint: null
+          },
+          file: null,
+          isSet: false
+        };
       },
 
       retrieveItem: function(itemChild) {
@@ -187,13 +221,6 @@ angular.module('Services', ['ngSanitize'])
         });
 
         return qItems.promise;
-      },
-
-      destroy: function() {
-        _.each(_items, function(item) {
-          item.$destroy;
-          item = null;
-        });
       }
     }
   }])
@@ -222,7 +249,7 @@ angular.module('Services', ['ngSanitize'])
           "modalData"
           , "modal"
           , supersonic.ui.modal.show
-          , { targetSubView: targetSubView }
+          , { targetSubView: targetSubView, geoPoint: Position.getGeoPoint()}
         );
 
         return modalOnTapOptions;
