@@ -26,31 +26,26 @@ angular.module("Directives", [])
       template:
         '<div>'
         +'  <img ng-if="pic.file" ng-src="{{pic.file.localFilePath}}" />'
-        +'  <img ng-show="!pic.file" src="/icons/image.png" />'
+        +'  <img ng-show="!pic.file" src="/icons/image.png" ng-click="useCamera()" />'
         +'</div>'
         
-        +'<div class="item">'
-        +'  <span class="list calm">'
-        +'    <b>{{title}}</b>'
-        +'  </span>'
-        +'  <span class="item-note">'
-        +'    <button class="button icon button-icon button-small super-checkmark balanced"'
+        +'<div>'
+        +'    <button class="icon button-icon button-large super-checkmark balanced"'
         +'       ng-show={{allowSwitchView}}'
         +'       ng-click="switchSubView()">'
         +'    </button>'
 
-        +'    <button class="button icon button-icon button-small super-ios7-camera energized"'
+        +'    <button class="icon button-icon button-large super-ios7-camera energized"'
         +'       ng-click="useCamera()">'
         +'    </button>'
 
         +'    <button ng-show="pic.file"'
         +'       ng-click="removePic()"'
-        +'       class="button icon button-icon button-small super-ios7-trash assertive">'
+        +'       class="icon button-icon button-large super-ios7-trash assertive">'
         +'    </button>'
-        +'    <button ng-show="!pic.staged.file"'
-        +'       class="button icon button-icon button-small super-ios7-trash stable">'
+        +'    <button ng-show="!pic.file"'
+        +'       class="icon button-icon button-large super-ios7-trash stable">'
         +'    </button>'
-        +'  </span>'
         +'</div>',
       controller: ['$http', '$scope', 'Host', 'Nav', 'Position', 'Profile', 'Item'
                   ,'supersonic', function($http, $scope, Host, Nav, Position, Profile
@@ -71,11 +66,16 @@ angular.module("Directives", [])
           var imgOptions = {
             destinationType: "fileURI",
             encodingType: "jpg",
-            quality: 75,
+            quality: 50,
             saveToPhotoAlbum: false,
-            targetWidth: 280,
-            targetHeight: 210
+            targetWidth: 240,
+            targetHeight: 180
           };
+
+          $scope.pic.dbRecord = {
+            created: moment( moment().toDate() ).format(),
+            geoPoint: Position.getGeoPoint()
+          }
 
           supersonic.media.camera.takePicture(imgOptions).then( function(imageURI){
             window.resolveLocalFileSystemURI(imageURI, function(file) {
@@ -93,11 +93,6 @@ angular.module("Directives", [])
                   var localFilePath = "/" +movedFile.name;
                   // var localFilePath = "/test.png";
 
-                  // FileService.fileCleanUp();
-                  $scope.pic.dbRecord = {
-                    created: moment( moment().toDate() ).format(),
-                    geoPoint: Position.getGeoPoint()
-                  }
                   $scope.pic.file = {
                     fileType: fileExt,
                     // fileType: "png",

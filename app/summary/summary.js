@@ -6,13 +6,12 @@ angular.module('summary', ['common'])
       qItems: $q.defer()
     });
 
-    // Nav.initPreloadView("details");
+    Nav.initPreloadView("details");
     Nav.initPreloadView("modal");
 
     supersonic.device.ready.then( function() {
       console.log("ready for summary");
-      // Nav.startView("details");
-      Nav.startView("modal");
+      Nav.startView("details");  
     });
   }])
   .controller('SummaryCtrl', ['$filter','$firebase','$q','$rootScope','$scope'
@@ -28,7 +27,7 @@ angular.module('summary', ['common'])
       distances: null,
       employerImgFilepath: "",
       flashMsg: [],
-      imgFilepathItem: Host.buildFilepath('items','avatar'),
+      imgFilepathItem: Host.buildFilepath('items','base'),
       items: null,
       subViews: Nav._getSubViews(),
       userInfo: null
@@ -39,10 +38,14 @@ angular.module('summary', ['common'])
       Nav.enterView("modal", Nav.modalOnTapOptions("create"));
     }
 
-    buttons[1] = Nav.initButtons('profile', "user.png", "right", 1, Nav.setupButton);
+    buttons[1] = Nav.initButtons('exit', "exit.png", "right", 1, Nav.setupButton);
     buttons[1].navBtn.onTap = function() {
-      Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
+      Nav.logout();
     }
+    // buttons[1] = Nav.initButtons('profile', "user.png", "right", 1, Nav.setupButton);
+    // buttons[1].navBtn.onTap = function() {
+    //   Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
+    // }
 
     Nav.setButtons(buttons);
 
@@ -103,6 +106,8 @@ angular.module('summary', ['common'])
           $rootScope.qItems.resolve(fbItems);
         });
       }
+
+      Nav.startView("modal");
     });
 
     $scope.openDetails = function(item) {

@@ -1,6 +1,6 @@
 angular.module('details', ['common'])
   .run(function($rootScope, Nav) {
-    var buttons = ["back", "create", "profile"];
+    var buttons = ["back", "create", "exit"];
     Nav.initPreloadView("modal");
     Nav.setButtons(buttons);
 
@@ -10,9 +10,10 @@ angular.module('details', ['common'])
       Nav.enterView("modal", Nav.modalOnTapOptions("create"));
     }
 
-    buttons[2] = Nav.initButtons('profile', "user.png", "right", 1, Nav.setupButton);
+    buttons[2] = Nav.initButtons('exit', "exit.png", "right", 1, Nav.setupButton);
     buttons[2].navBtn.onTap = function() {
-      Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
+      Nav.logout();
+      // Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
     }
 
     steroids.view.navigationBar.show({
@@ -22,20 +23,21 @@ angular.module('details', ['common'])
     supersonic.device.ready.then( function() {
       console.log("ready for details");
       supersonic.data.channel("DOMReady").publish();
-      Nav.startView("modal");
     });
   })
   .controller("DetailsCtrl", ["$q","$rootScope","$scope","FB","Host","Item","Nav"
-                            ,"Position","supersonic",function($q,$rootScope,$scope
-                            ,FB,Host,Item,Nav,Position,supersonic) {
+                            ,"Position","supersonic","User",function($q,$rootScope
+                            ,$scope,FB,Host,Item,Nav,Position,supersonic,User) {
     var buttons = Nav.getButtons();
     var backBtn = Nav.getButton("back");
     var thisView = Nav.parseViewName(steroids.view.location);
     var _userVoteIndex;
 
     angular.extend($scope, {
+      author: null,
       flashMsg: "",
       imgFilepathItem: Host.buildFilepath('items','base'),
+      imgFilepathUser: Host.buildFilepath('users', 'avatar'),
       item: null,
       userInfo: null,
       userVote: null,
@@ -112,7 +114,7 @@ angular.module('details', ['common'])
 
     supersonic.data.channel("detailsData").subscribe( function(message) {
       Position._setGeoPoint($rootScope.currentGeoPoint = message.content.geoPoint);
-      $scope.item = Item._getItem();      
+      $scope.item = Item._getItem();
       $scope.$digest();
       var qItem = $q.defer();
 
@@ -135,6 +137,12 @@ angular.module('details', ['common'])
       qItem.promise.then(function(item) {
         $scope.userVote = _.findWhere($scope.userInfo.votes, {itemId: item.$id});
         _userVoteIndex = getUserVoteIndex(item.$id);
+
+        User.retrieveUser(FB.getRef().child("users/" +item.authorId)).then(function(user) {
+          $scope.author = user;
+        });
+
+        Nav.startView("modal");
       });
 
       steroids.view.navigationBar.update({

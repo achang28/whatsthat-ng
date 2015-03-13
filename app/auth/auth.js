@@ -30,7 +30,8 @@ angular.module('auth', ['common'])
         });
       },
       rememberMe: false,
-      users: null
+      users: null,
+      fbUsers: null
     });
 
     UserData.getUsers().then(function(users) {

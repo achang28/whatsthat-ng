@@ -1,6 +1,13 @@
 angular.module('modal', ['common'])
   .run(['$q','$rootScope','Nav','supersonic', function($q,$rootScope,Nav,supersonic) {
     var thisView = Nav.parseViewName(steroids.view.location); 
+    var buttons = new Array("close");
+    
+    Nav.setButtons(buttons);
+    buttons[0] = Nav.initButtons('close', "close.png", "right", 1, Nav.setupButton);
+    buttons[0].navBtn.onTap = function() {
+      Nav.exitView(thisView, supersonic.ui.modal.hide);
+    }
 
     supersonic.device.ready.then( function() {
       console.log("ready for modal");
@@ -16,13 +23,7 @@ angular.module('modal', ['common'])
       userInfo: null
     });
 
-    var buttons = new Array("close");
-    Nav.setButtons(buttons);
-
-    buttons[0] = Nav.initButtons('close', "close.png", "right", 1, Nav.setupButton);
-    buttons[0].navBtn.onTap = function() {
-      Nav.exitView(thisView, supersonic.ui.modal.hide);
-    }
+    Nav.switchSubView("create");
 
     $rootScope.qUserInfo.promise.then(function(userInfo) {
       $scope.userInfo = userInfo;
@@ -74,9 +75,24 @@ angular.module('modal', ['common'])
         // setup Nav stuff
         var thisView = Nav.parseViewName(steroids.view.location);
         var qS3Policy = Host.retrieveS3Policy(); // a promise
+        var closeBtn = Nav.getButton("close");
+        
+        supersonic.ui.views.current.whenVisible(function() {
+          steroids.view.navigationBar.show({
+            title: "What's That?"
+          });
+          steroids.view.navigationBar.update({
+            styleClass: "super-navbar",
+            overrideBackButton: true,
+            buttons: {
+              left: [],
+              right: [closeBtn.navBtn]
+            }
+          });
+        });
 
         angular.extend($scope, {
-          flashMsg: null,
+          flashMsg: "nothing...",
           newItem: {
             iid: "",
             created: moment().toDate(),
@@ -105,7 +121,6 @@ angular.module('modal', ['common'])
             var fuOptions = new FileUploadOptions();
 
             $scope.newItem.filename = Item.generateImgId(timestamp,userInfo.$id,fileType);
-            $scope.flashMsg = $scope.newItem;
             
             qS3Policy.then(function(s3Data) {
               fuOptions.mimeType = "image/" +fileType;
@@ -139,22 +154,6 @@ angular.module('modal', ['common'])
               }, fuOptions);
             });
           }
-        });
-
-        var closeBtn = Nav.getButton("close");
-        supersonic.ui.views.current.whenVisible(function() {
-          steroids.view.navigationBar.show({
-            title: "What's That?"
-          });
-
-          steroids.view.navigationBar.update({
-            styleClass: "super-navbar",
-            overrideBackButton: true,
-            buttons: {
-              left: [],
-              right: [closeBtn.navBtn]
-            }
-          });
         });
       }]
     }

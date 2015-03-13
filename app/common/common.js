@@ -24,22 +24,6 @@ angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
     if (thisView == "auth")
       return;
 
-    supersonic.data.channel("coreData").subscribe( function(message) {
-      
-
-      // var unsubscribeLocation = supersonic.data.channel("locationData").subscribe( function(message) {
-      //   if (message.sender == thisView) {
-      //     unsubscribeLocation();
-      //     return;
-      //   }
-
-      //   Position._setGeoPoint($rootScope.currentGeoPoint = message.content.geoPoint);
-      //   $rootScope.$digest();
-      // });
-
-      // Watcher._setUnWatcher(unsubscribeLocation);
-    });
-
     // check if user is authenticated
     var authInfo = Profile._getParam("fBAuthRef").$getAuth();
     
@@ -208,7 +192,8 @@ angular.module('Services', ['ngSanitize'])
         var self = this;
 
         itemsRef.once('value', function(itemList) {
-          var itemCount = itemList.val().length;
+          var itemList = Array.prototype.slice.call( itemList.val() );
+          var itemCount = itemList.length;
 
           itemsRef.on('child_added', function(itemChild) {
             self.retrieveItem(itemChild).then(function(item) {
@@ -709,16 +694,6 @@ angular.module('Services', ['ngSanitize'])
 
       toggleOrgTypeId: function(orgTypeId) {
         return Math.abs(parseInt(orgTypeId) - 1).toString();
-      },
-
-      destroy: function() {
-        _params["fBAuthRef"] = null;
-        _params["rememberMe"] = null;
-        _params["userInfo"].$destroy();
-        _params["userInfo"] = null;
-        _.each(_params["sites"], function(site) {
-          site = null;
-        });
       }
     };
 
@@ -726,88 +701,28 @@ angular.module('Services', ['ngSanitize'])
   }])
   .factory('User', ['$firebase','$q','FB','Profile',function($firebase,$q,FB
                     ,Profile) {
-    var _employerUsers, _constituentUsers = [], _loginUsers = [];
+    var _user;
 
     return {
-      setLoginUsers: function(users) {
-        _employerUsers = users;
+      getUser: function(userId) {
+        return _.findWhere(_users, {"uid": userId});
       },
-      getEmployerUsers: function(userId) {
-        if (userId >= 0)
-          return _.find(_employerUsers, {$id: userId});
-        else
-          return _employerUsers;
-      },
-      setEmployerUsers: function(users) {
-        _employerUsers = users;
-      },
-      setupEmployerUsers: function(myEmployerSite, myOrgTypeId) {
-        // get list of all site Ids
-        var myOrgTypeName = Profile.getOrgTypeName(myOrgTypeId);
-        var rootRef = FB.getRef();
-        var employerRef = rootRef.child(myOrgTypeName).child(myEmployerSite.$id);
-        var employerUsersRef = employerRef.child('users');
-        var usersRef = rootRef.child('users');
-        var qEmployerUsers;
 
-        employerUsersRef.on('value', function(employerUsers) {
-          var userCount = employerUsers.val().length;
-          qEmployerUsers = new Array(userCount);
-          _employerUsers = new Array(userCount);
-
-          for (var i = 0; i < qEmployerUsers.length; i++) {
-            qEmployerUsers[i] = $q.defer();
-          }
-
-          var cnt = 0;
-          employerUsersRef.on('child_added', function(userRef) {
-            usersRef.child(userRef.val().id).once("value", function(userRef) {
-              var fbUser = $firebase(userRef.ref()).$asObject();
-              fbUser.$loaded().then(function(user) {
-                qEmployerUsers[cnt].resolve(user);
-                cnt++;
-              });
-            }, function(error) {
-              console.log(error);
-            });
-          });
-        });
-
-        return $q.all(_.map(qEmployerUsers, function(qUser) {
-          return qUser.promise;
-        }));
-      },
-      getConstituentUser: function(userId) {
-        if (userId >= 0)
-          return _.find(_constituentUsers, {$id: userId});
-        else
-          return _constituentUsers;
-      },
-      addConstituentUser: function(user) {
-        _constituentUsers.push(user);
-      },
-      setupConstituentUser: function(userId) {
-        var qConstituentUser = $q.defer();
-        var rootRef = FB.getRef();
-        var fbUser = $firebase(rootRef.child('users').child(userId)).$asObject();
+      retrieveUser: function(userChild) {
+        var qUser = $q.defer();
+        var fbUser = $firebase(userChild.ref()).$asObject();
+        
         fbUser.$loaded().then(function(user) {
-          qConstituentUser.resolve(user);
+          qUser.resolve(user);
+        }, function(error) {
+          console.log(error);
         });
 
-        return qConstituentUser.promise;
+        return qUser.promise;
       },
-      destroy: function() {
-        _.each(_employerUsers, function(user) {
-          user = null;
-        });
-        
-        _.each(_constituentUsers, function(user) {
-          user = null;
-        });
-        
-        _.each(_loginUsers, function(user) {
-          user = null;
-        });
+
+      setUser: function(user) {
+        _user = user;
       }
     };
   }])
@@ -878,6 +793,125 @@ angular.module('TestData', [])
         firstName: 'Anthony',
         lastName: 'Ettinger',
         filename: "aettinger.png"
+      }, {
+        uid: "3",
+        email: 'achang@whatsthat.com',
+        password: 'achang',
+        firstName: 'Albert',
+        lastName: 'Chang',
+        filename: "achang.jpg"
+      }, {
+        uid: "4",
+        email: 'alessandra@whatsthat.com',
+        password: 'alessandra',
+        firstName: 'Alessandra',
+        lastName: 'Aless',
+        filename: "no-pic.png"
+      }, {
+        uid: "5",
+        email: 'avina@whatsthat.com',
+        password: 'avina',
+        firstName: 'Avina',
+        lastName: 'Avi',
+        filename: "avina.jpg"
+      }, {
+        uid: "6",
+        email: 'charles@whatsthat.com',
+        password: 'charles',
+        firstName: 'Charles',
+        lastName: 'Bronson',
+        filename: "charles.jpg"
+      }, {
+        uid: "7",
+        email: 'dgoeury@whatsthat.com',
+        password: 'dgoeury',
+        firstName: 'Denis',
+        lastName: 'Goeury',
+        filename: "dgoeury.jpg"
+      }, {
+        uid: "8",
+        email: 'fraz@whatsthat.com',
+        password: 'fraz',
+        firstName: 'Fraz',
+        lastName: 'Fraz',
+        filename: "fraz.jpg"
+      }, {
+        uid: "9",
+        email: 'greg@whatsthat.com',
+        password: 'greg',
+        firstName: 'Greg',
+        lastName: 'Greg',
+        filename: "greg.jpg"
+      }, {
+        uid: "10",
+        email: 'jmarsh@whatsthat.com',
+        password: 'jmarsh',
+        firstName: 'Jeff',
+        lastName: 'Marsh',
+        filename: "jmarsh.jpg"
+      }, {
+        uid: "11",
+        email: 'jbaker@whatsthat.com',
+        password: 'jbaker',
+        firstName: 'Jordan',
+        lastName: 'Baker',
+        filename: "jbaker.jpg"
+      }, {
+        uid: "12",
+        email: 'jrenaud@whatsthat.com',
+        password: 'jrenaud',
+        firstName: 'Josh',
+        lastName: 'Renaud',
+        filename: "jrenaud.jpg"
+      }, {
+        uid: "13",
+        email: 'kevinc@whatsthat.com',
+        password: 'kevinc',
+        firstName: 'Kevin',
+        lastName: 'Costner',
+        filename: "kevinc.jpg"
+      }, {
+        uid: "14",
+        email: 'mark@whatsthat.com',
+        password: 'mark',
+        firstName: 'Marky',
+        lastName: 'Mark',
+        filename: "mark.jpg"
+      }, {
+        uid: "15",
+        email: 'peter@whatsthat.com',
+        password: 'peter',
+        firstName: 'Peter',
+        lastName: 'Pan',
+        filename: "peter.jpg"
+      }, {
+        uid: "16",
+        email: 'rghatol@whatsthat.com',
+        password: 'rghatol',
+        firstName: 'Rohit',
+        lastName: 'Ghatol',
+        filename: "rghatol.jpg"
+      }, {
+        uid: "17",
+        email: 'skyle@whatsthat.com',
+        password: 'skyle',
+        firstName: 'Scott',
+        lastName: 'Kyle',
+        filename: "skyle.jpg"
+      }, {
+        uid: "18",
+        email: 'scannon@whatsthat.com',
+        password: 'scannon',
+        firstName: 'Susan',
+        lastName: 'Cannon',
+        filename: "scannon.jpg"
+      }, {
+        uid: "19",
+        email: 'tberchenbriter@whatsthat.com',
+        password: 'tberchenbriter',
+        firstName: 'Tom',
+        lastName: 'Berchenbriter',
+        filename: "tberchenbriter.jpg"
       }
     ];
     
@@ -896,6 +930,45 @@ angular.module('TestData', [])
           qUsers.resolve(_users);
 
         return qUsers.promise;
+      },
+      retrieveUser: function(userChild) {
+        var qItem = $q.defer();
+        var fbItem = $firebase(itemChild.ref()).$asObject();
+        
+        fbItem.$loaded().then(function(item) {
+          qItem.resolve(item);
+        }, function(error) {
+          console.log(error);
+        });
+
+        return qItem.promise;
+      },
+
+      retrieveUsers: function() {
+        // reset items array
+        _users = [];
+
+        // get list of all site Ids
+        var usersRef = _rootRef.child("users");
+        var qUsers = $q.defer();
+        var cnt = 0;
+        var self = this;
+
+        usersRef.once('value', function(usersList) {
+          var itemList = Array.prototype.slice.call( itemList.val() );
+          var itemCount = itemList.length;
+
+          itemsRef.on('child_added', function(itemChild) {
+            self.retrieveItem(itemChild).then(function(item) {
+              _items.push(item);
+              
+              if (++cnt >= itemCount)
+                qItems.resolve(_items);
+            });
+          });
+        });
+
+        return qItems.promise;
       }
     };
   }])

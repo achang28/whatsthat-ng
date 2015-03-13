@@ -1,28 +1,29 @@
 <div ng-controller="DetailsCtrl">
-  <div user class="item item-balanced" model="userInfo"></div>
   <div class="card">
     <span class="item item-calm item-divider">
       {{item.name}}
       <i class="item-note">
-        <a href="#" class="subdued">
-          {{item.votes.up}} <i class="icon super-thumbsup"></i>
-        </a>
-        <a href="#" class="subdued">
-          {{item.votes.down}} <i class="icon super-thumbsdown"></i>
-        </a>
+        <i class="button-icon super-thumbsup light">{{item.votes.up}}</i>
+        <i class="button-icon super-thumbsdown light">{{item.votes.down}}</i>
       </i>
     </span>
     <span class="item item-body">
       <img class="full-image" ng-src={{imgFilepathItem}}{{item.filename}} />
       <p>{{item.desc}}</p>
     </span>
-  </div>
-  <div class="list-inset item-divider">
-    <span author ng-if="item" model={{item.authorId}} pref="userId"></span>
-    Taken on: {{item.created | date : "short"}}
-  </div>
 
-  <div class="list-inset" ng-show="userInfo.$id != item.authorId">
+    <div class="item item-divider item-stable item-icon-right">
+      <span>
+        <i class="item-note">by: <b>{{author.firstName}} {{author.lastName}}</b></i><br />
+        <i class="item-note">Taken on: {{item.created | date : "short"}}</i>
+      </span>
+      <span class="item-avatar-right">
+        <img ng-src={{imgFilepathUser}}{{author.filename}} />
+      </span>
+    </div>
+  </div>
+  
+  <div class="list list-inset" ng-show="userInfo.$id != item.authorId">
     <!-- Like -->
     <button ng-show="!userVote" class="button icon-left button-block button-balanced super-thumbsup" ng-click="vote('up')">Like it</button>
     <button ng-show="userVote && userVote.direction != 'up'" class="button icon-left button-block button-balanced super-thumbsup" ng-click="vote('up')">Like it</button>
