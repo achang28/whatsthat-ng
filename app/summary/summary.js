@@ -33,7 +33,7 @@ angular.module('summary', ['common'])
       userInfo: null
     });
     
-    buttons[0] = Nav.initButtons('create', "add.png", "right", 0, Nav.setupButton);
+    buttons[0] = Nav.initButtons('create', "add.png", "left", 0, Nav.setupButton);
     buttons[0].navBtn.onTap = function() {
       Nav.enterView("modal", Nav.modalOnTapOptions("create"));
     }

@@ -2,10 +2,13 @@ angular.module('modal', ['common'])
   .run(['$q','$rootScope','Nav','supersonic', function($q,$rootScope,Nav,supersonic) {
     var thisView = Nav.parseViewName(steroids.view.location); 
     var buttons = new Array("close");
+    Nav.initSubViews(["create", "profile"]);
+    // Nav.switchSubView("create");
     
     Nav.setButtons(buttons);
     buttons[0] = Nav.initButtons('close', "close.png", "right", 1, Nav.setupButton);
     buttons[0].navBtn.onTap = function() {
+      Nav.resetSubViews(Nav._getSubViews());
       Nav.exitView(thisView, supersonic.ui.modal.hide);
     }
 
@@ -17,13 +20,11 @@ angular.module('modal', ['common'])
   .controller('ModalCtrl', ['$q','$rootScope','$scope','Nav','Position','Profile','supersonic'
                         , function($q, $rootScope,$scope,Nav,Position,Profile,supersonic) {
     var thisView = Nav.parseViewName(steroids.view.location);
-    Nav.initSubViews(["create", "profile"]);
+    
     angular.extend($scope, {
       subViews: Nav._getSubViews(),
       userInfo: null
     });
-
-    Nav.switchSubView("create");
 
     $rootScope.qUserInfo.promise.then(function(userInfo) {
       $scope.userInfo = userInfo;
@@ -35,6 +36,7 @@ angular.module('modal', ['common'])
     });
     
     supersonic.data.channel(thisView +"Data").subscribe( function(message) {
+      Nav.switchSubView("create");
       Position._setGeoPoint($rootScope.currentGeoPoint = message.content.geoPoint);
       var targetSubView = message.content.targetSubView
       var readyParams = {

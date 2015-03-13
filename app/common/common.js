@@ -856,14 +856,16 @@ angular.module('TestData', [])
         firstName: 'Jordan',
         lastName: 'Baker',
         filename: "jbaker.jpg"
-      }, {
-        uid: "12",
-        email: 'jrenaud@whatsthat.com',
-        password: 'jrenaud',
-        firstName: 'Josh',
-        lastName: 'Renaud',
-        filename: "jrenaud.jpg"
-      }, {
+      },
+      // {
+      //   uid: "12",
+      //   email: 'jrenaud@whatsthat.com',
+      //   password: 'jrenaud',
+      //   firstName: 'Josh',
+      //   lastName: 'Renaud',
+      //   filename: "jrenaud.jpg"
+      // },
+      {
         uid: "13",
         email: 'kevinc@whatsthat.com',
         password: 'kevinc',
@@ -884,28 +886,32 @@ angular.module('TestData', [])
         firstName: 'Peter',
         lastName: 'Pan',
         filename: "peter.jpg"
-      }, {
-        uid: "16",
-        email: 'rghatol@whatsthat.com',
-        password: 'rghatol',
-        firstName: 'Rohit',
-        lastName: 'Ghatol',
-        filename: "rghatol.jpg"
-      }, {
+      },
+      // {
+      //   uid: "16",
+      //   email: 'rghatol@whatsthat.com',
+      //   password: 'rghatol',
+      //   firstName: 'Rohit',
+      //   lastName: 'Ghatol',
+      //   filename: "rghatol.jpg"
+      // },
+      {
         uid: "17",
         email: 'skyle@whatsthat.com',
         password: 'skyle',
         firstName: 'Scott',
         lastName: 'Kyle',
         filename: "skyle.jpg"
-      }, {
-        uid: "18",
-        email: 'scannon@whatsthat.com',
-        password: 'scannon',
-        firstName: 'Susan',
-        lastName: 'Cannon',
-        filename: "scannon.jpg"
-      }, {
+      },
+      // {
+      //   uid: "18",
+      //   email: 'scannon@whatsthat.com',
+      //   password: 'scannon',
+      //   firstName: 'Susan',
+      //   lastName: 'Cannon',
+      //   filename: "scannon.jpg"
+      // },
+      {
         uid: "19",
         email: 'tberchenbriter@whatsthat.com',
         password: 'tberchenbriter',

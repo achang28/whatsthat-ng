@@ -66,7 +66,7 @@ angular.module("Directives", [])
           var imgOptions = {
             destinationType: "fileURI",
             encodingType: "jpg",
-            quality: 50,
+            quality: 60,
             saveToPhotoAlbum: false,
             targetWidth: 240,
             targetHeight: 180
