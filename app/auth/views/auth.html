@@ -15,4 +15,15 @@
       {{user.firstName}} {{user.lastName}}
     </a>
   </div>
+  <div class="list list-inset">
+    <label class="item item-input">
+      <span class="input-label">Username</span>
+      <input type="text" ng-model="creds.email">
+    </label>
+    <label class="item item-input">
+      <span class="input-label">Password</span>
+      <input type="password" ng-model="creds.password">
+    </label>
+    <button class="button button-block button-balanced" ng-click="login(creds, rememberMe)">Go</button>
+  </div>
 </div>

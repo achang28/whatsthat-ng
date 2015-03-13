@@ -24,25 +24,50 @@ angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
     if (thisView == "auth")
       return;
 
+
+
+
+
+
+
+
+
     // check if user is authenticated
+    /********** G E T   F I R E B A S E   U S E R ***********
+    *********************************************************
+    ********************************************************/
     var authInfo = Profile._getParam("fBAuthRef").$getAuth();
+    console.log("authInfo: ", authInfo);
     
     if (authInfo != null) {
       var uid = Profile.substrUid(authInfo.uid);
+      var userRef = FB.getRef().child('users').child(uid);
+      var fbUserRef = $firebase(userRef);
       
-      // obtain Firebase User info
-      var fbUserRef = $firebase(FB.getRef().child('users').child(uid));
-      Profile.getFbUserInfo(fbUserRef).then(function(userInfo) {
+      fbUserRef.$asObject().$loaded().then(function(userInfo) {
         Profile._setParam("userInfo", _userInfo = userInfo);
         $rootScope.qUserInfo.resolve(userInfo);
+
+
       }, function(err) {
         $rootScope.qUserInfo.reject(err);
       });
+      /********************************************************
+      *********************************************************
+      ********************************************************/
+
+
+
+
+
+
+
+
     } else {
       Nav.enterView("auth", {
         name: "replace",
         method: supersonic.ui.layers.replace
-      });  
+      });
     }
   }]);
 
@@ -150,12 +175,19 @@ angular.module('Services', ['ngSanitize'])
         return timestamp +"-" +userId +"." +fileType;
       },
 
+
+      /******************* A D D    I T E M *******************
+      *********************************************************
+      ********************************************************/
       publishItem: function(newItem) {
         var itemsRef = _rootRef.child("items");
         return itemsRef.push(newItem, function(err) {
           console.log(err ? err : "Successfully Set");
         });
       },
+      /********************************************************
+      *********************************************************
+      ********************************************************/
 
       refreshPicParams: function() {
         return {
@@ -170,6 +202,10 @@ angular.module('Services', ['ngSanitize'])
 
       retrieveItem: function(itemChild) {
         var qItem = $q.defer();
+        
+        /****************** G E T  (1)  I T E M *****************
+        *********************************************************
+        ********************************************************/
         var fbItem = $firebase(itemChild.ref()).$asObject();
         
         fbItem.$loaded().then(function(item) {
@@ -177,20 +213,24 @@ angular.module('Services', ['ngSanitize'])
         }, function(error) {
           console.log(error);
         });
+        /********************************************************
+        *********************************************************
+        ********************************************************/
 
         return qItem.promise;
       },
 
       retrieveItems: function() {
-        // reset items array
         _items = [];
 
-        // get list of all site Ids
-        var itemsRef = _rootRef.child("items");
+        var itemsRef = _rootRef.child("items"); // line 58
         var qItems = $q.defer();
         var cnt = 0;
         var self = this;
-
+        
+        /**************** G E T  (M)  I T E M S ****************
+        *********************************************************
+        ********************************************************/
         itemsRef.once('value', function(itemList) {
           var itemList = Array.prototype.slice.call( itemList.val() );
           var itemCount = itemList.length;
@@ -204,6 +244,9 @@ angular.module('Services', ['ngSanitize'])
             });
           });
         });
+        /********************************************************
+        *********************************************************
+        ********************************************************/
 
         return qItems.promise;
       }
@@ -466,69 +509,13 @@ angular.module('Services', ['ngSanitize'])
       timestamp: moment().format()
     };
 
-    // var _stopWatcherCb = null;
-
     return {
-      calcDistance: function(beg, end) {
-        var begX = beg.lat, endX = end.lat;
-        var begY = beg.long, endY = end.long;
-        return Math.sqrt(Math.pow(endX - begX, 2) + Math.pow(endY - begY, 2));
-      },
       getGeoPoint: function() {
-        // var qGeoPoint = $q.defer();
-
-        // supersonic.device.geolocation.getPosition().then(function(position) {
-        //   var geoPoint = {
-        //     lat: position.coords.latitude,
-        //     long: position.coords.longitude,
-        //     latitude: position.coords.latitude,
-        //     longitude: position.coords.longitude
-        //   };
-
-        //   qGeoPoint.resolve(geoPoint);
-        // }, function(errResults) {
-        //    console.log(errResults);
-        // }, {
-        //    enableHighAccuracy: false // CREATE A PROVIDER
-        // });
-
-        // return qGeoPoint.promise;
         return _currentGeoPoint;
       },
 
       _setGeoPoint: function(newGeoPoint) {
         _currentGeoPoint = newGeoPoint;
-      },
-
-      getDistances: function(origin, targetDestinations, callback) {
-        var mapOrigin = new google.maps.LatLng(origin.lat, origin.long);
-        var distanceService = new google.maps.DistanceMatrixService();
-
-        distanceService.getDistanceMatrix({
-        origins: [mapOrigin],
-        destinations: _.map(targetDestinations, function(dest) {
-                        return new google.maps.LatLng(dest.lat, dest.long);
-                     }),
-        travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.IMPERIAL,
-        avoidHighways: false,
-        avoidTolls: false
-        }, callback);
-      },
-
-      prepForDistances: function(items, newGeoPoint) {
-        var qDistances = $q.defer();
-        
-        if (!items || items.length < 1)
-          qDistances.reject("No items exist");
-        else {
-          var itemGeoPoints = _.pluck(items, "geoPoint");
-          this.getDistances(newGeoPoint,itemGeoPoints,function(resp,status) {
-            qDistances.resolve(resp); // add error || exception handling
-          });  
-        }
-
-        return qDistances.promise;
       }
     };
   }])

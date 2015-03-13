@@ -135,8 +135,15 @@ angular.module('modal', ['common'])
                 signature: s3Data.signature
               };
 
+              
+
+              /******************* A D D    I T E M *******************
+              *********************************************************
+              ********************************************************/
               fileTransfer.upload(fileToUpload, encodeURI(s3Data.url), function(good) {
-                var fbItem = $firebase(Item.publishItem($scope.newItem).ref()).$asObject();
+                var newItemRef = Item.publishItem($scope.newItem).ref();
+                var fbItem = $firebase(newItemRef).$asObject();
+                
                 fbItem.$loaded().then(function(item) {
                   item.iid = item.$id;
                   item.$save();
@@ -154,6 +161,18 @@ angular.module('modal', ['common'])
               }, function(error) {
                 navigator.notification.alert("Failed");
               }, fuOptions);
+              /********************************************************
+              *********************************************************
+              ********************************************************/
+
+
+
+
+
+
+
+
+
             });
           }
         });

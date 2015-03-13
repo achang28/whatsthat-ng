@@ -42,10 +42,6 @@ angular.module('summary', ['common'])
     buttons[1].navBtn.onTap = function() {
       Nav.logout();
     }
-    // buttons[1] = Nav.initButtons('profile', "user.png", "right", 1, Nav.setupButton);
-    // buttons[1].navBtn.onTap = function() {
-    //   Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
-    // }
 
     Nav.setButtons(buttons);
 
@@ -60,44 +56,22 @@ angular.module('summary', ['common'])
         longitude: coords.longitude
       };
 
-      $rootScope.qItems.promise.then(function(items) {
-        var distanceDiff = 1000 * Position.calcDistance($rootScope.currentGeoPoint, newGeoPoint);  
-        
-        if (distanceDiff > 1) {
-          Position._setGeoPoint($rootScope.currentGeoPoint = newGeoPoint);
-          var locationParams = {
-            sender: sender,
-            content: { geoPoint: newGeoPoint }
-          };
-
-          supersonic.data.channel("locationData").publish(locationParams);
-          Position.prepForDistances(items, newGeoPoint).then(function(resp) {
-            $scope.distances = resp.rows[0].elements;
-          }, function(errMessage) {
-            console.log(errMessage);
-          });
-        }
-      });
+      Position._setGeoPoint($rootScope.currentGeoPoint = newGeoPoint);
     });
 
-    $scope.$watch("items.length", function(newLength, oldCnt) {
-      if (newLength > 0) {
-        var currentGeoPoint = Position.getGeoPoint();
-
-        Position.prepForDistances($scope.items, currentGeoPoint).then(function(resp) {
-          $scope.distances = resp.rows[0].elements;
-        }, function(errMessage) {
-          console.log(errMessage);
-        });
-      }
-    });
+    unwatch();
 
     $rootScope.qUserInfo.promise.then(function(userInfo) {
       $scope.userInfo = userInfo;
       var items = Item._getItems();
 
 
-      // get items
+
+
+
+      /********** G E T  I T E M S (common.js 195) ************
+      *********************************************************
+      ********************************************************/
       if ( angular.isDefined(items) )
         $rootScope.qItems.resolve(items);
       else {
@@ -106,6 +80,9 @@ angular.module('summary', ['common'])
           $rootScope.qItems.resolve(fbItems);
         });
       }
+      /********************************************************
+      *********************************************************
+      ********************************************************/
 
       Nav.startView("modal");
     });

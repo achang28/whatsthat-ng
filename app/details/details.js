@@ -1,20 +1,13 @@
 angular.module('details', ['common'])
   .run(function($rootScope, Nav) {
-    // var buttons = ["back", "create", "exit"];
     var buttons = ["back", "exit"];
-    // Nav.initPreloadView("modal");
     Nav.setButtons(buttons);
 
     buttons[0] = Nav.initButtons('back', "back.png", "left", 0, Nav.setupButton);
-    // buttons[1] = Nav.initButtons('create', "add.png", "right", 0, Nav.setupButton);
-    // buttons[1].navBtn.onTap = function() {
-    //   Nav.enterView("modal", Nav.modalOnTapOptions("create"));
-    // }
 
     buttons[1] = Nav.initButtons('exit', "exit.png", "right", 1, Nav.setupButton);
     buttons[1].navBtn.onTap = function() {
       Nav.logout();
-      // Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
     }
 
     steroids.view.navigationBar.show({
@@ -125,12 +118,18 @@ angular.module('details', ['common'])
       };
 
       if (!$scope.item || message.content.itemId != $scope.item.$id) {
+        /********** G E T   F I R E B A S E   U S E R ***********
+        *********************************************************
+        ********************************************************/
         var itemRef = FB.getRef().child("items").child(message.content.itemId);
-
+        
         Item.retrieveItem(itemRef).then(function(item) {
           qItem.resolve(item);
           Item._setItem($scope.item = item);
         });
+        /********************************************************
+        *********************************************************
+        ********************************************************/
       } else
         qItem.resolve($scope.item);
 
@@ -142,8 +141,6 @@ angular.module('details', ['common'])
         User.retrieveUser(FB.getRef().child("users/" +item.authorId)).then(function(user) {
           $scope.author = user;
         });
-
-        // Nav.startView("modal");
       });
 
       steroids.view.navigationBar.update({
