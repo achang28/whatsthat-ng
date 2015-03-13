@@ -11,8 +11,7 @@ angular.module('summary', ['common'])
 
     supersonic.device.ready.then( function() {
       console.log("ready for summary");
-      Nav.startView("details");
-      Nav.startView("modal");
+      Nav.startView("details");  
     });
   }])
   .controller('SummaryCtrl', ['$filter','$firebase','$q','$rootScope','$scope'
@@ -28,20 +27,20 @@ angular.module('summary', ['common'])
       distances: null,
       employerImgFilepath: "",
       flashMsg: [],
-      imgFilepathItem: Host.buildFilepath('items','avatar'),
+      imgFilepathItem: Host.buildFilepath('items','base'),
       items: null,
       subViews: Nav._getSubViews(),
       userInfo: null
     });
     
-    buttons[0] = Nav.initButtons('create', "add.png", "right", 0, Nav.setupButton);
+    buttons[0] = Nav.initButtons('create', "add.png", "left", 0, Nav.setupButton);
     buttons[0].navBtn.onTap = function() {
       Nav.enterView("modal", Nav.modalOnTapOptions("create"));
     }
 
-    buttons[1] = Nav.initButtons('profile', "user.png", "right", 1, Nav.setupButton);
+    buttons[1] = Nav.initButtons('exit', "exit.png", "right", 1, Nav.setupButton);
     buttons[1].navBtn.onTap = function() {
-      Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
+      Nav.logout();
     }
 
     Nav.setButtons(buttons);
@@ -57,44 +56,22 @@ angular.module('summary', ['common'])
         longitude: coords.longitude
       };
 
-      $rootScope.qItems.promise.then(function(items) {
-        var distanceDiff = 1000 * Position.calcDistance($rootScope.currentGeoPoint, newGeoPoint);  
-        
-        if (distanceDiff > 1) {
-          Position._setGeoPoint($rootScope.currentGeoPoint = newGeoPoint);
-          var locationParams = {
-            sender: sender,
-            content: { geoPoint: newGeoPoint }
-          };
-
-          supersonic.data.channel("locationData").publish(locationParams);
-          Position.prepForDistances(items, newGeoPoint).then(function(resp) {
-            $scope.distances = resp.rows[0].elements;
-          }, function(errMessage) {
-            console.log(errMessage);
-          });
-        }
-      });
+      Position._setGeoPoint($rootScope.currentGeoPoint = newGeoPoint);
     });
 
-    $scope.$watch("items.length", function(newLength, oldCnt) {
-      if (newLength > 0) {
-        var currentGeoPoint = Position.getGeoPoint();
-
-        Position.prepForDistances($scope.items, currentGeoPoint).then(function(resp) {
-          $scope.distances = resp.rows[0].elements;
-        }, function(errMessage) {
-          console.log(errMessage);
-        });
-      }
-    });
+    unwatch();
 
     $rootScope.qUserInfo.promise.then(function(userInfo) {
       $scope.userInfo = userInfo;
       var items = Item._getItems();
 
 
-      // get items
+
+
+
+      /********** G E T  I T E M S (common.js 195) ************
+      *********************************************************
+      ********************************************************/
       if ( angular.isDefined(items) )
         $rootScope.qItems.resolve(items);
       else {
@@ -103,6 +80,11 @@ angular.module('summary', ['common'])
           $rootScope.qItems.resolve(fbItems);
         });
       }
+      /********************************************************
+      *********************************************************
+      ********************************************************/
+
+      Nav.startView("modal");
     });
 
     $scope.openDetails = function(item) {

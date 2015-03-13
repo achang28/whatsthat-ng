@@ -15,8 +15,7 @@ angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
         lat: 0.0,
         long: 0.0,
         latitude: 0.0,
-        longitude: 0.0,
-        timestamp: ""
+        longitude: 0.0
       },
       qUserInfo: $q.defer()
     });
@@ -25,41 +24,50 @@ angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
     if (thisView == "auth")
       return;
 
-    supersonic.data.channel("coreData").subscribe( function(message) {
-      
 
-      // var unsubscribeLocation = supersonic.data.channel("locationData").subscribe( function(message) {
-      //   if (message.sender == thisView) {
-      //     unsubscribeLocation();
-      //     return;
-      //   }
 
-      //   Position._setGeoPoint($rootScope.currentGeoPoint = message.content.geoPoint);
-      //   $rootScope.$digest();
-      // });
 
-      // Watcher._setUnWatcher(unsubscribeLocation);
-    });
+
+
+
+
 
     // check if user is authenticated
+    /********** G E T   F I R E B A S E   U S E R ***********
+    *********************************************************
+    ********************************************************/
     var authInfo = Profile._getParam("fBAuthRef").$getAuth();
+    console.log("authInfo: ", authInfo);
     
     if (authInfo != null) {
       var uid = Profile.substrUid(authInfo.uid);
+      var userRef = FB.getRef().child('users').child(uid);
+      var fbUserRef = $firebase(userRef);
       
-      // obtain Firebase User info
-      var fbUserRef = $firebase(FB.getRef().child('users').child(uid));
-      Profile.getFbUserInfo(fbUserRef).then(function(userInfo) {
+      fbUserRef.$asObject().$loaded().then(function(userInfo) {
         Profile._setParam("userInfo", _userInfo = userInfo);
         $rootScope.qUserInfo.resolve(userInfo);
+
+
       }, function(err) {
         $rootScope.qUserInfo.reject(err);
       });
+      /********************************************************
+      *********************************************************
+      ********************************************************/
+
+
+
+
+
+
+
+
     } else {
       Nav.enterView("auth", {
         name: "replace",
         method: supersonic.ui.layers.replace
-      });  
+      });
     }
   }]);
 
@@ -79,7 +87,7 @@ angular.module('Services', ['ngSanitize'])
       }
     };
   })
-  .factory('Host', function() {
+  .factory('Host', function($http, $q) {
     var _protocols = ["http","https"]
       ,_bucket = "whatsthat"
       ,_hostnames = ["://127.0.0.1","://s3-us-west-1.amazonaws.com/"]
@@ -104,6 +112,26 @@ angular.module('Services', ['ngSanitize'])
         // var filepath = this.getHostURL() +_bucket +"" +model +size +"/" +direction +"/";
         var filepath = this.getHostURL() +_bucket +"/" +model +"/" +size +"/";
         return filepath;
+      },
+
+      retrieveS3Policy: function() {
+        var qS3Policy = $q.defer();
+
+        $http({
+          url: 'http://towimg.martiangold.com/s3-upload.php?bucket=whatsthat',
+          method: "GET",
+          data: {"bucket": "whatsthat"},
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          }
+        }).success(function(data, status, headers, config) {
+          qS3Policy.resolve(data);
+        }).error(function(data, status, headers, config) {
+          qS3Policy.reject(data);
+        });
+
+        return qS3Policy.promise;
       },
 
       uploadFile: function(fileURL, destination) {
@@ -143,15 +171,41 @@ angular.module('Services', ['ngSanitize'])
         _items = items;
       },
 
+      generateImgId: function(timestamp,userId,fileType) {
+        return timestamp +"-" +userId +"." +fileType;
+      },
+
+
+      /******************* A D D    I T E M *******************
+      *********************************************************
+      ********************************************************/
       publishItem: function(newItem) {
         var itemsRef = _rootRef.child("items");
         return itemsRef.push(newItem, function(err) {
           console.log(err ? err : "Successfully Set");
         });
       },
+      /********************************************************
+      *********************************************************
+      ********************************************************/
+
+      refreshPicParams: function() {
+        return {
+          dbReord: {
+            created: null,
+            geoPoint: null
+          },
+          file: null,
+          isSet: false
+        };
+      },
 
       retrieveItem: function(itemChild) {
         var qItem = $q.defer();
+        
+        /****************** G E T  (1)  I T E M *****************
+        *********************************************************
+        ********************************************************/
         var fbItem = $firebase(itemChild.ref()).$asObject();
         
         fbItem.$loaded().then(function(item) {
@@ -159,22 +213,27 @@ angular.module('Services', ['ngSanitize'])
         }, function(error) {
           console.log(error);
         });
+        /********************************************************
+        *********************************************************
+        ********************************************************/
 
         return qItem.promise;
       },
 
       retrieveItems: function() {
-        // reset items array
         _items = [];
 
-        // get list of all site Ids
-        var itemsRef = _rootRef.child("items");
+        var itemsRef = _rootRef.child("items"); // line 58
         var qItems = $q.defer();
         var cnt = 0;
         var self = this;
-
+        
+        /**************** G E T  (M)  I T E M S ****************
+        *********************************************************
+        ********************************************************/
         itemsRef.once('value', function(itemList) {
-          var itemCount = itemList.val().length;
+          var itemList = Array.prototype.slice.call( itemList.val() );
+          var itemCount = itemList.length;
 
           itemsRef.on('child_added', function(itemChild) {
             self.retrieveItem(itemChild).then(function(item) {
@@ -185,15 +244,11 @@ angular.module('Services', ['ngSanitize'])
             });
           });
         });
+        /********************************************************
+        *********************************************************
+        ********************************************************/
 
         return qItems.promise;
-      },
-
-      destroy: function() {
-        _.each(_items, function(item) {
-          item.$destroy;
-          item = null;
-        });
       }
     }
   }])
@@ -222,7 +277,7 @@ angular.module('Services', ['ngSanitize'])
           "modalData"
           , "modal"
           , supersonic.ui.modal.show
-          , { targetSubView: targetSubView }
+          , { targetSubView: targetSubView, geoPoint: Position.getGeoPoint()}
         );
 
         return modalOnTapOptions;
@@ -454,69 +509,13 @@ angular.module('Services', ['ngSanitize'])
       timestamp: moment().format()
     };
 
-    // var _stopWatcherCb = null;
-
     return {
-      calcDistance: function(beg, end) {
-        var begX = beg.lat, endX = end.lat;
-        var begY = beg.long, endY = end.long;
-        return Math.sqrt(Math.pow(endX - begX, 2) + Math.pow(endY - begY, 2));
-      },
       getGeoPoint: function() {
-        // var qGeoPoint = $q.defer();
-
-        // supersonic.device.geolocation.getPosition().then(function(position) {
-        //   var geoPoint = {
-        //     lat: position.coords.latitude,
-        //     long: position.coords.longitude,
-        //     latitude: position.coords.latitude,
-        //     longitude: position.coords.longitude
-        //   };
-
-        //   qGeoPoint.resolve(geoPoint);
-        // }, function(errResults) {
-        //    console.log(errResults);
-        // }, {
-        //    enableHighAccuracy: false // CREATE A PROVIDER
-        // });
-
-        // return qGeoPoint.promise;
         return _currentGeoPoint;
       },
 
       _setGeoPoint: function(newGeoPoint) {
         _currentGeoPoint = newGeoPoint;
-      },
-
-      getDistances: function(origin, targetDestinations, callback) {
-        var mapOrigin = new google.maps.LatLng(origin.lat, origin.long);
-        var distanceService = new google.maps.DistanceMatrixService();
-
-        distanceService.getDistanceMatrix({
-        origins: [mapOrigin],
-        destinations: _.map(targetDestinations, function(dest) {
-                        return new google.maps.LatLng(dest.lat, dest.long);
-                     }),
-        travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.IMPERIAL,
-        avoidHighways: false,
-        avoidTolls: false
-        }, callback);
-      },
-
-      prepForDistances: function(items, newGeoPoint) {
-        var qDistances = $q.defer();
-        
-        if (!items || items.length < 1)
-          qDistances.reject("No items exist");
-        else {
-          var itemGeoPoints = _.pluck(items, "geoPoint");
-          this.getDistances(newGeoPoint,itemGeoPoints,function(resp,status) {
-            qDistances.resolve(resp); // add error || exception handling
-          });  
-        }
-
-        return qDistances.promise;
       }
     };
   }])
@@ -682,16 +681,6 @@ angular.module('Services', ['ngSanitize'])
 
       toggleOrgTypeId: function(orgTypeId) {
         return Math.abs(parseInt(orgTypeId) - 1).toString();
-      },
-
-      destroy: function() {
-        _params["fBAuthRef"] = null;
-        _params["rememberMe"] = null;
-        _params["userInfo"].$destroy();
-        _params["userInfo"] = null;
-        _.each(_params["sites"], function(site) {
-          site = null;
-        });
       }
     };
 
@@ -699,88 +688,28 @@ angular.module('Services', ['ngSanitize'])
   }])
   .factory('User', ['$firebase','$q','FB','Profile',function($firebase,$q,FB
                     ,Profile) {
-    var _employerUsers, _constituentUsers = [], _loginUsers = [];
+    var _user;
 
     return {
-      setLoginUsers: function(users) {
-        _employerUsers = users;
+      getUser: function(userId) {
+        return _.findWhere(_users, {"uid": userId});
       },
-      getEmployerUsers: function(userId) {
-        if (userId >= 0)
-          return _.find(_employerUsers, {$id: userId});
-        else
-          return _employerUsers;
-      },
-      setEmployerUsers: function(users) {
-        _employerUsers = users;
-      },
-      setupEmployerUsers: function(myEmployerSite, myOrgTypeId) {
-        // get list of all site Ids
-        var myOrgTypeName = Profile.getOrgTypeName(myOrgTypeId);
-        var rootRef = FB.getRef();
-        var employerRef = rootRef.child(myOrgTypeName).child(myEmployerSite.$id);
-        var employerUsersRef = employerRef.child('users');
-        var usersRef = rootRef.child('users');
-        var qEmployerUsers;
 
-        employerUsersRef.on('value', function(employerUsers) {
-          var userCount = employerUsers.val().length;
-          qEmployerUsers = new Array(userCount);
-          _employerUsers = new Array(userCount);
-
-          for (var i = 0; i < qEmployerUsers.length; i++) {
-            qEmployerUsers[i] = $q.defer();
-          }
-
-          var cnt = 0;
-          employerUsersRef.on('child_added', function(userRef) {
-            usersRef.child(userRef.val().id).once("value", function(userRef) {
-              var fbUser = $firebase(userRef.ref()).$asObject();
-              fbUser.$loaded().then(function(user) {
-                qEmployerUsers[cnt].resolve(user);
-                cnt++;
-              });
-            }, function(error) {
-              console.log(error);
-            });
-          });
-        });
-
-        return $q.all(_.map(qEmployerUsers, function(qUser) {
-          return qUser.promise;
-        }));
-      },
-      getConstituentUser: function(userId) {
-        if (userId >= 0)
-          return _.find(_constituentUsers, {$id: userId});
-        else
-          return _constituentUsers;
-      },
-      addConstituentUser: function(user) {
-        _constituentUsers.push(user);
-      },
-      setupConstituentUser: function(userId) {
-        var qConstituentUser = $q.defer();
-        var rootRef = FB.getRef();
-        var fbUser = $firebase(rootRef.child('users').child(userId)).$asObject();
+      retrieveUser: function(userChild) {
+        var qUser = $q.defer();
+        var fbUser = $firebase(userChild.ref()).$asObject();
+        
         fbUser.$loaded().then(function(user) {
-          qConstituentUser.resolve(user);
+          qUser.resolve(user);
+        }, function(error) {
+          console.log(error);
         });
 
-        return qConstituentUser.promise;
+        return qUser.promise;
       },
-      destroy: function() {
-        _.each(_employerUsers, function(user) {
-          user = null;
-        });
-        
-        _.each(_constituentUsers, function(user) {
-          user = null;
-        });
-        
-        _.each(_loginUsers, function(user) {
-          user = null;
-        });
+
+      setUser: function(user) {
+        _user = user;
       }
     };
   }])
@@ -851,6 +780,131 @@ angular.module('TestData', [])
         firstName: 'Anthony',
         lastName: 'Ettinger',
         filename: "aettinger.png"
+      }, {
+        uid: "3",
+        email: 'achang@whatsthat.com',
+        password: 'achang',
+        firstName: 'Albert',
+        lastName: 'Chang',
+        filename: "achang.jpg"
+      }, {
+        uid: "4",
+        email: 'alessandra@whatsthat.com',
+        password: 'alessandra',
+        firstName: 'Alessandra',
+        lastName: 'Aless',
+        filename: "no-pic.png"
+      }, {
+        uid: "5",
+        email: 'avina@whatsthat.com',
+        password: 'avina',
+        firstName: 'Avina',
+        lastName: 'Avi',
+        filename: "avina.jpg"
+      }, {
+        uid: "6",
+        email: 'charles@whatsthat.com',
+        password: 'charles',
+        firstName: 'Charles',
+        lastName: 'Bronson',
+        filename: "charles.jpg"
+      }, {
+        uid: "7",
+        email: 'dgoeury@whatsthat.com',
+        password: 'dgoeury',
+        firstName: 'Denis',
+        lastName: 'Goeury',
+        filename: "dgoeury.jpg"
+      }, {
+        uid: "8",
+        email: 'fraz@whatsthat.com',
+        password: 'fraz',
+        firstName: 'Fraz',
+        lastName: 'Fraz',
+        filename: "fraz.jpg"
+      }, {
+        uid: "9",
+        email: 'greg@whatsthat.com',
+        password: 'greg',
+        firstName: 'Greg',
+        lastName: 'Greg',
+        filename: "greg.jpg"
+      }, {
+        uid: "10",
+        email: 'jmarsh@whatsthat.com',
+        password: 'jmarsh',
+        firstName: 'Jeff',
+        lastName: 'Marsh',
+        filename: "jmarsh.jpg"
+      }, {
+        uid: "11",
+        email: 'jbaker@whatsthat.com',
+        password: 'jbaker',
+        firstName: 'Jordan',
+        lastName: 'Baker',
+        filename: "jbaker.jpg"
+      },
+      // {
+      //   uid: "12",
+      //   email: 'jrenaud@whatsthat.com',
+      //   password: 'jrenaud',
+      //   firstName: 'Josh',
+      //   lastName: 'Renaud',
+      //   filename: "jrenaud.jpg"
+      // },
+      {
+        uid: "13",
+        email: 'kevinc@whatsthat.com',
+        password: 'kevinc',
+        firstName: 'Kevin',
+        lastName: 'Costner',
+        filename: "kevinc.jpg"
+      }, {
+        uid: "14",
+        email: 'mark@whatsthat.com',
+        password: 'mark',
+        firstName: 'Marky',
+        lastName: 'Mark',
+        filename: "mark.jpg"
+      }, {
+        uid: "15",
+        email: 'peter@whatsthat.com',
+        password: 'peter',
+        firstName: 'Peter',
+        lastName: 'Pan',
+        filename: "peter.jpg"
+      },
+      // {
+      //   uid: "16",
+      //   email: 'rghatol@whatsthat.com',
+      //   password: 'rghatol',
+      //   firstName: 'Rohit',
+      //   lastName: 'Ghatol',
+      //   filename: "rghatol.jpg"
+      // },
+      {
+        uid: "17",
+        email: 'skyle@whatsthat.com',
+        password: 'skyle',
+        firstName: 'Scott',
+        lastName: 'Kyle',
+        filename: "skyle.jpg"
+      },
+      // {
+      //   uid: "18",
+      //   email: 'scannon@whatsthat.com',
+      //   password: 'scannon',
+      //   firstName: 'Susan',
+      //   lastName: 'Cannon',
+      //   filename: "scannon.jpg"
+      // },
+      {
+        uid: "19",
+        email: 'tberchenbriter@whatsthat.com',
+        password: 'tberchenbriter',
+        firstName: 'Tom',
+        lastName: 'Berchenbriter',
+        filename: "tberchenbriter.jpg"
       }
     ];
     
@@ -869,6 +923,45 @@ angular.module('TestData', [])
           qUsers.resolve(_users);
 
         return qUsers.promise;
+      },
+      retrieveUser: function(userChild) {
+        var qItem = $q.defer();
+        var fbItem = $firebase(itemChild.ref()).$asObject();
+        
+        fbItem.$loaded().then(function(item) {
+          qItem.resolve(item);
+        }, function(error) {
+          console.log(error);
+        });
+
+        return qItem.promise;
+      },
+
+      retrieveUsers: function() {
+        // reset items array
+        _users = [];
+
+        // get list of all site Ids
+        var usersRef = _rootRef.child("users");
+        var qUsers = $q.defer();
+        var cnt = 0;
+        var self = this;
+
+        usersRef.once('value', function(usersList) {
+          var itemList = Array.prototype.slice.call( itemList.val() );
+          var itemCount = itemList.length;
+
+          itemsRef.on('child_added', function(itemChild) {
+            self.retrieveItem(itemChild).then(function(item) {
+              _items.push(item);
+              
+              if (++cnt >= itemCount)
+                qItems.resolve(_items);
+            });
+          });
+        });
+
+        return qItems.promise;
       }
     };
   }])

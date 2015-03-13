@@ -1,18 +1,13 @@
 angular.module('details', ['common'])
   .run(function($rootScope, Nav) {
-    var buttons = ["back", "create", "profile"];
-    Nav.initPreloadView("modal");
+    var buttons = ["back", "exit"];
     Nav.setButtons(buttons);
 
     buttons[0] = Nav.initButtons('back', "back.png", "left", 0, Nav.setupButton);
-    buttons[1] = Nav.initButtons('create', "add.png", "right", 0, Nav.setupButton);
-    buttons[1].navBtn.onTap = function() {
-      Nav.enterView("modal", Nav.modalOnTapOptions("create"));
-    }
 
-    buttons[2] = Nav.initButtons('profile', "user.png", "right", 1, Nav.setupButton);
-    buttons[2].navBtn.onTap = function() {
-      Nav.enterView("modal", Nav.modalOnTapOptions("profile"));
+    buttons[1] = Nav.initButtons('exit', "exit.png", "right", 1, Nav.setupButton);
+    buttons[1].navBtn.onTap = function() {
+      Nav.logout();
     }
 
     steroids.view.navigationBar.show({
@@ -22,20 +17,21 @@ angular.module('details', ['common'])
     supersonic.device.ready.then( function() {
       console.log("ready for details");
       supersonic.data.channel("DOMReady").publish();
-      Nav.startView("modal");
-    });  
+    });
   })
   .controller("DetailsCtrl", ["$q","$rootScope","$scope","FB","Host","Item","Nav"
-                            ,"Position","supersonic",function($q,$rootScope,$scope
-                            ,FB,Host,Item,Nav,Position,supersonic) {
+                            ,"Position","supersonic","User",function($q,$rootScope
+                            ,$scope,FB,Host,Item,Nav,Position,supersonic,User) {
     var buttons = Nav.getButtons();
     var backBtn = Nav.getButton("back");
     var thisView = Nav.parseViewName(steroids.view.location);
     var _userVoteIndex;
 
     angular.extend($scope, {
+      author: null,
       flashMsg: "",
       imgFilepathItem: Host.buildFilepath('items','base'),
+      imgFilepathUser: Host.buildFilepath('users', 'avatar'),
       item: null,
       userInfo: null,
       userVote: null,
@@ -112,29 +108,39 @@ angular.module('details', ['common'])
 
     supersonic.data.channel("detailsData").subscribe( function(message) {
       Position._setGeoPoint($rootScope.currentGeoPoint = message.content.geoPoint);
-      $scope.item = Item._getItem();      
-      $scope.$digest();
       var qItem = $q.defer();
-
+      $scope.item = Item._getItem();
+      $scope.$digest();
+      
       var readyParams = {
         sender: Nav.parseViewName(steroids.view.location),
         content: {}
       };
 
-      supersonic.data.channel("detailsReady").publish(readyParams);
       if (!$scope.item || message.content.itemId != $scope.item.$id) {
+        /********** G E T   F I R E B A S E   U S E R ***********
+        *********************************************************
+        ********************************************************/
         var itemRef = FB.getRef().child("items").child(message.content.itemId);
-
+        
         Item.retrieveItem(itemRef).then(function(item) {
           qItem.resolve(item);
           Item._setItem($scope.item = item);
         });
+        /********************************************************
+        *********************************************************
+        ********************************************************/
       } else
         qItem.resolve($scope.item);
 
+      supersonic.data.channel("detailsReady").publish(readyParams);
       qItem.promise.then(function(item) {
         $scope.userVote = _.findWhere($scope.userInfo.votes, {itemId: item.$id});
         _userVoteIndex = getUserVoteIndex(item.$id);
+
+        User.retrieveUser(FB.getRef().child("users/" +item.authorId)).then(function(user) {
+          $scope.author = user;
+        });
       });
 
       steroids.view.navigationBar.update({

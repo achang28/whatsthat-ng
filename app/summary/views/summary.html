@@ -1,5 +1,5 @@
 <div ng-controller="SummaryCtrl">
-  <div user class="item item-balanced" model="userInfo"></div>
+  <div user class="item item-dark" model="userInfo"></div>
   <div class="list card" ng-repeat="item in items" ng-click="openDetails(item)">
     <a class="item item-stable row" href="#">
       <!-- User || site Photo -->
@@ -7,14 +7,12 @@
         <img ng-src={{imgFilepathItem}}{{item.filename}} />
       </div>
 
-      <div class="col col-55">
+      <div class="col col-55 item-note">
         <b>{{item.name}}</b><br />
         
         <!-- User || Site Info -->
-        <i author model={{item.authorId}} pref="full name"></i>
-        <i class="assertive">
-          {{item.created | timeAgo}}<br />
-        <i>
+        <i author model={{item.authorId}} pref="full name"></i><br />
+        <i class="assertive">{{item.created | timeAgo}}<i><br />
       </div>
 
       <!-- notes && media icons -->

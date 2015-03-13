@@ -5,9 +5,8 @@
 #                                                                              #
 #                                                                              #
 ############################################################################ -->
-<div ng-controller="ModalCtrl" class="list list-inset">
+<div ng-controller="ModalCtrl">
   <!-- WORKFLOW INDICATORS -->
-  <create ng-if="subViews['create']" my-sites="mySites"></create>
-  <!-- <create></create> -->
-  <menu ng-if="subViews['menu']" my-sites="mySites"></menu>
+  <div create ng-if="subViews['create'] && userInfo" class="item-image"></div>
+  <!-- <menu ng-if="subViews['menu']" my-sites="mySites"></menu> -->
 </div>

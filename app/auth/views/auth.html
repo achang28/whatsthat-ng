@@ -10,10 +10,20 @@
 <div ng-controller="AuthCtrl">
   <!-- Users -->
   <div ng-repeat="user in users" ng-click="login(user, rememberMe)" class="list card">
-    <a class="item item-stable item-icon-left item-icon-right">
+    <a class="item item-stable">
       <i class="item-avatar-left"><img ng-src={{imgFilepathUser}}{{user.filename}} /></i>
       {{user.firstName}} {{user.lastName}}
-      <span class="badge badge-assertive">0</span>
     </a>
+  </div>
+  <div class="list list-inset">
+    <label class="item item-input">
+      <span class="input-label">Username</span>
+      <input type="text" ng-model="creds.email">
+    </label>
+    <label class="item item-input">
+      <span class="input-label">Password</span>
+      <input type="password" ng-model="creds.password">
+    </label>
+    <button class="button button-block button-balanced" ng-click="login(creds, rememberMe)">Go</button>
   </div>
 </div>
