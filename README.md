@@ -1,1 +1,6 @@
-Read me coming soon.  But, if you are an avid AppGyver Supersonic/Steroids user, simply clone this repo, run "bower install" from the root directory of this repo, then run "steroids --connect".
+Read me coming soon.  But, if you are an avid AppGyver Supersonic/Steroids user, do the following:
+
+1) clone this repo
+2) run "bower install"
+3) minify both supersonic.js and steroids.js into the same folder (into supersonic.min.js and steroids.min.js, respectively)
+4) run "steroids --connect"
