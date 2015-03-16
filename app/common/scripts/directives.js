@@ -16,6 +16,95 @@ angular.module("Directives", [])
       }]
     }
   })
+  .directive("menu", function() {
+    return {
+      restrict: "EA",
+      scope: true,
+      template:
+        // '<div class="item"><h1>'
+        '<div class="item">' 
+        // +'  <button ng-show="nightMode" class="button button-large button-outline button-light" ng-click="toggleMode(false)">'
+        // +'    <i class="icon super-ios7-sunny-outline"></i>'
+        // +'  </button>'
+        // +'  <button ng-hide="nightMode" class="button button-large button-outline button-energized">'
+        // +'    <i class="icon energized super-ios7-sunny"></i>'
+        // +'  </button>'
+
+        // +'  <button ng-hide="nightMode" class="button button-large button-outline button-light" ng-click="toggleMode(true)">'
+        // +'    <i class="icon super-ios7-moon-outline"></i>'
+        // +'  </button>'
+        // +'  <button ng-show="nightMode" class="button button-large button-outline button-energized">'
+        // +'    <i class="icon energized super-ios7-moon"></i>'
+        // +'  </button></h1>'
+        +'  Hello <b>{{userInfo.firstName}} {{userInfo.lastName}}</b>'
+        +'</div>'
+        +'<div class="list">'
+        +'  <a class="item item-icon-left" href="#" ng-click="goToView(\'summary\')">'
+        +'    <i class="icon super-model-s"></i>Requests'
+        +'    <span class="badge badge-balanced">25</span>'
+        +'  </a>'
+        +'  <a class="item item-icon-left" href="#">'
+        +'    <i class="icon super-wand"></i>Admin'
+        +'  </a>'
+        +'  <a class="item item-icon-left" href="#">'
+        +'    <i class="icon super-gear-b"></i>Settings'
+        +'  </a>'
+        +'  <a class="item item-avatar" href="#" ng-click="goToView(\'profile\')">'
+        +'    <img ng-src="{{clientImgFilepath}}{{userInfo.filename}}" />Profile'
+        +'  </a>'
+        +'  <a class="item item-icon-right" href="#">'
+        +'    <div ng-click="logout()">'
+        +'      <i class="icon super-ios7-locked"></i>Logout'
+        +'    </div>'
+        +'  </a>'
+        +'</div>',
+      controller: ['$rootScope', '$scope', 'Host', 'Nav', 'Position', 'Profile'
+                ,'supersonic','$mdBottomSheet', function($rootScope,$scope,Host
+                , Nav,Position,Profile, supersonic, $mdBottomSheet) {
+        var thisView = Nav.parseViewName(steroids.view.location);
+
+        angular.extend($scope, {
+          clientImgFilepath: Host.buildFilepath('users', 'avatar'),
+          // nightMode: true,
+          userInfo: null,
+          goToView: function(viewName) {
+            var options;
+
+            if (viewName != "summary") {
+              options = Nav.buildOnTapOptions("modalData", "modal", supersonic.ui.layers.push, {
+                targetSubView: viewName,
+                geoPoint: Position.getGeoPoint()
+              });
+              
+              Nav.enterView("modal", options);
+            } else {
+              options = Nav.buildOnTapOptions("summaryData", "root", supersonic.ui.layers.popAll, {
+                targetSubView: viewName,
+                geoPoint: Position.getGeoPoint()
+              });  
+
+              Nav.enterView("summary", options);
+            }
+            
+            $mdBottomSheet.hide();
+          },
+          logout: function() {
+            Nav.logout();
+          },
+          test: function() {
+            console.log($scope.user);
+          }
+          // toggleMode: function(status) {
+          //   $scope.nightMode = status;
+          //   document.body.className = $scope.nightMode ? "night" : "day";
+          // }
+        });
+
+        $scope.userInfo = Profile._getParam("userInfo");
+        // $scope.toggleMode($scope.nightMode);
+      }]
+    }
+  })
   .directive('picProcessor', function() {
     return {
       restrict: 'EA',
@@ -66,10 +155,10 @@ angular.module("Directives", [])
           var imgOptions = {
             destinationType: "fileURI",
             encodingType: "jpg",
-            quality: 60,
+            quality: 70,
             saveToPhotoAlbum: false,
-            targetWidth: 240,
-            targetHeight: 180
+            targetWidth: 280,
+            targetHeight: 2100
           };
 
           $scope.pic.dbRecord = {
@@ -134,10 +223,18 @@ angular.module("Directives", [])
         +'<span>'
         +'  <b>{{user.firstName}} {{user.lastName}}</b>'
         +'</span>',
-      controller: ['$rootScope','$scope','Host',function($rootScope,$scope, Host) {
+      controller: ['$rootScope','$scope','Host',function($rootScope,$scope
+                  ,Host) {
+        var input = true;
         angular.extend($scope, {
-          imgFilepathUser: Host.buildFilepath('users', 'avatar'),
+          imgFilepathUser: Host.buildFilepath('users', 'avatar')
         });
       }]
     };
+  })
+  .controller('btmSheetCtrl', function($scope,$mdBottomSheet,Nav) {
+    $scope.openModal = function() {
+      $mdBottomSheet.hide();
+      Nav.enterView("modal", Nav.modalOnTapOptions("create"));  
+    }
   })

@@ -5,7 +5,7 @@ angular.module('auth', ['common'])
   .controller('AuthCtrl', ['$firebase','$q','$rootScope','$sanitize','$scope','FB'
                           ,'Host','Nav','Profile','supersonic','UserData'
                           ,function($firebase,$q,$rootScope,$sanitize,$scope,FB
-                          ,Host,Nav,Profile,supersonic,UserData) {
+                          ,Host,Nav,Profile,supersonic,UserData,$ionicSlideBoxDelegate) {
     angular.extend($scope, {
       creds: {
         email: "",
@@ -15,11 +15,6 @@ angular.module('auth', ['common'])
       isLoggedIn: false,
       imgFilepathUser: Host.buildFilepath('users','avatar'),
       login: function(creds, rememberMe) {
-        
-
-
-
-
         /******************** L O G I N *************************
         *********************************************************
         ********************************************************/
@@ -43,14 +38,9 @@ angular.module('auth', ['common'])
         /********************************************************
         *********************************************************
         ********************************************************/
-
-
-
-
-
-
-
-
+      },
+      slideHasChanged: function($index) {
+        $ionicSlideBoxDelegate.slide($index, 300);
       },
       rememberMe: true,
       users: null,

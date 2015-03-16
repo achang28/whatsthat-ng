@@ -1,8 +1,8 @@
-angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
-                        ,'Services', 'TestData'])
+angular.module('common', ['supersonic','Directives','Filters','firebase','ngMaterial'
+                        ,'Services','TestData'])
   .run(['$firebase','$q','$rootScope','FB','Host','Nav','Position','Profile'
-        ,'supersonic','Watcher', function($firebase,$q,$rootScope,FB,Host,Nav
-        ,Position,Profile,supersonic,Watcher) {
+        ,'supersonic','Watcher','$templateCache', function($firebase,$q,$rootScope,FB,Host,Nav
+        ,Position,Profile,supersonic,Watcher,$templateCache) {
     var thisView = Nav.parseViewName(steroids.view.location);
     var qUid = $q.defer();
     var _userInfo;
@@ -23,21 +23,8 @@ angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
     // if current view is Auth, defer to Auth's .run()
     if (thisView == "auth")
       return;
-
-
-
-
-
-
-
-
-
     // check if user is authenticated
-    /********** G E T   F I R E B A S E   U S E R ***********
-    *********************************************************
-    ********************************************************/
     var authInfo = Profile._getParam("fBAuthRef").$getAuth();
-    console.log("authInfo: ", authInfo);
     
     if (authInfo != null) {
       var uid = Profile.substrUid(authInfo.uid);
@@ -52,23 +39,14 @@ angular.module('common', ['supersonic', 'Directives', 'Filters', 'firebase'
       }, function(err) {
         $rootScope.qUserInfo.reject(err);
       });
-      /********************************************************
-      *********************************************************
-      ********************************************************/
-
-
-
-
-
-
-
-
     } else {
       Nav.enterView("auth", {
         name: "replace",
         method: supersonic.ui.layers.replace
       });
     }
+
+    $templateCache.put("menu.html", '<md-bottom-sheet><div menu></div></md-bottom-sheet>');
   }]);
 
 angular.module('Filters', [])
@@ -80,7 +58,14 @@ angular.module('Filters', [])
 
 angular.module('Services', ['ngSanitize'])
   .factory('FB', function() {
+    /*********************************************************
+    ********************************************************/
+    
     var _fbRef = new Firebase("https://whatsthat.firebaseio.com");
+
+    /*********************************************************
+    ********************************************************/
+    
     return {
       getRef: function() {
         return _fbRef;
@@ -780,131 +765,6 @@ angular.module('TestData', [])
         firstName: 'Anthony',
         lastName: 'Ettinger',
         filename: "aettinger.png"
-      }, {
-        uid: "3",
-        email: 'achang@whatsthat.com',
-        password: 'achang',
-        firstName: 'Albert',
-        lastName: 'Chang',
-        filename: "achang.jpg"
-      }, {
-        uid: "4",
-        email: 'alessandra@whatsthat.com',
-        password: 'alessandra',
-        firstName: 'Alessandra',
-        lastName: 'Aless',
-        filename: "no-pic.png"
-      }, {
-        uid: "5",
-        email: 'avina@whatsthat.com',
-        password: 'avina',
-        firstName: 'Avina',
-        lastName: 'Avi',
-        filename: "avina.jpg"
-      }, {
-        uid: "6",
-        email: 'charles@whatsthat.com',
-        password: 'charles',
-        firstName: 'Charles',
-        lastName: 'Bronson',
-        filename: "charles.jpg"
-      }, {
-        uid: "7",
-        email: 'dgoeury@whatsthat.com',
-        password: 'dgoeury',
-        firstName: 'Denis',
-        lastName: 'Goeury',
-        filename: "dgoeury.jpg"
-      }, {
-        uid: "8",
-        email: 'fraz@whatsthat.com',
-        password: 'fraz',
-        firstName: 'Fraz',
-        lastName: 'Fraz',
-        filename: "fraz.jpg"
-      }, {
-        uid: "9",
-        email: 'greg@whatsthat.com',
-        password: 'greg',
-        firstName: 'Greg',
-        lastName: 'Greg',
-        filename: "greg.jpg"
-      }, {
-        uid: "10",
-        email: 'jmarsh@whatsthat.com',
-        password: 'jmarsh',
-        firstName: 'Jeff',
-        lastName: 'Marsh',
-        filename: "jmarsh.jpg"
-      }, {
-        uid: "11",
-        email: 'jbaker@whatsthat.com',
-        password: 'jbaker',
-        firstName: 'Jordan',
-        lastName: 'Baker',
-        filename: "jbaker.jpg"
-      },
-      // {
-      //   uid: "12",
-      //   email: 'jrenaud@whatsthat.com',
-      //   password: 'jrenaud',
-      //   firstName: 'Josh',
-      //   lastName: 'Renaud',
-      //   filename: "jrenaud.jpg"
-      // },
-      {
-        uid: "13",
-        email: 'kevinc@whatsthat.com',
-        password: 'kevinc',
-        firstName: 'Kevin',
-        lastName: 'Costner',
-        filename: "kevinc.jpg"
-      }, {
-        uid: "14",
-        email: 'mark@whatsthat.com',
-        password: 'mark',
-        firstName: 'Marky',
-        lastName: 'Mark',
-        filename: "mark.jpg"
-      }, {
-        uid: "15",
-        email: 'peter@whatsthat.com',
-        password: 'peter',
-        firstName: 'Peter',
-        lastName: 'Pan',
-        filename: "peter.jpg"
-      },
-      // {
-      //   uid: "16",
-      //   email: 'rghatol@whatsthat.com',
-      //   password: 'rghatol',
-      //   firstName: 'Rohit',
-      //   lastName: 'Ghatol',
-      //   filename: "rghatol.jpg"
-      // },
-      {
-        uid: "17",
-        email: 'skyle@whatsthat.com',
-        password: 'skyle',
-        firstName: 'Scott',
-        lastName: 'Kyle',
-        filename: "skyle.jpg"
-      },
-      // {
-      //   uid: "18",
-      //   email: 'scannon@whatsthat.com',
-      //   password: 'scannon',
-      //   firstName: 'Susan',
-      //   lastName: 'Cannon',
-      //   filename: "scannon.jpg"
-      // },
-      {
-        uid: "19",
-        email: 'tberchenbriter@whatsthat.com',
-        password: 'tberchenbriter',
-        firstName: 'Tom',
-        lastName: 'Berchenbriter',
-        filename: "tberchenbriter.jpg"
       }
     ];
     

@@ -11,17 +11,18 @@ angular.module('summary', ['common'])
 
     supersonic.device.ready.then( function() {
       console.log("ready for summary");
-      Nav.startView("details");  
+      Nav.startView("details");
     });
   }])
   .controller('SummaryCtrl', ['$filter','$firebase','$q','$rootScope','$scope'
                           ,'FB','Host','Nav','Position','Profile','Item','supersonic'
-                          ,'User','UserData',function($filter,$firebase,$q,$rootScope
+                          ,'User','UserData','$mdBottomSheet','$templateCache',function($filter,$firebase,$q,$rootScope
                           ,$scope,FB,Host,Nav,Position,Profile,Item,supersonic,User
-                          ,UserData) {
+                          ,UserData,$mdBottomSheet,$templateCache) {
     var buttons = new Array(2);
     var geoInitialized = false;
     var thisView = Nav.parseViewName(steroids.view.location);
+    var x = false;
 
     angular.extend($scope, {
       distances: null,
@@ -30,7 +31,22 @@ angular.module('summary', ['common'])
       imgFilepathItem: Host.buildFilepath('items','base'),
       items: null,
       subViews: Nav._getSubViews(),
-      userInfo: null
+      userInfo: null,
+      openBottomSheet: function() {
+        var options = {
+          // scope: $scope,
+          controller: "btmSheetCtrl",
+          disableParentScroll: true,
+          // template: $templateCache.get("menu.html")
+          templateUrl: "menu.html"
+        };
+
+        $mdBottomSheet.show(options).then(function() {
+          console.log('show was successful');
+        }, function(y) {
+          console.log('show went wrong');
+        });
+      }
     });
     
     buttons[0] = Nav.initButtons('create', "add.png", "left", 0, Nav.setupButton);
@@ -65,11 +81,7 @@ angular.module('summary', ['common'])
       $scope.userInfo = userInfo;
       var items = Item._getItems();
 
-
-
-
-
-      /********** G E T  I T E M S (common.js 195) ************
+      /********** G E T  I T E M S ************
       *********************************************************
       ********************************************************/
       if ( angular.isDefined(items) )
@@ -107,5 +119,13 @@ angular.module('summary', ['common'])
         left: _.pluck(_.where(buttons, {side: "left"}), "navBtn"),
         right: _.pluck(_.where(buttons, {side: "right"}), "navBtn")
       }
+    });
+
+    supersonic.device.network.whenOffline( function() {
+      console.log("Device is offline!");
+    });
+
+    supersonic.device.network.whenOnline( function() {
+      console.log("Device is ONLINE!");
     });
   }])

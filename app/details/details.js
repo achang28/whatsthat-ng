@@ -4,7 +4,6 @@ angular.module('details', ['common'])
     Nav.setButtons(buttons);
 
     buttons[0] = Nav.initButtons('back', "back.png", "left", 0, Nav.setupButton);
-
     buttons[1] = Nav.initButtons('exit', "exit.png", "right", 1, Nav.setupButton);
     buttons[1].navBtn.onTap = function() {
       Nav.logout();
@@ -14,14 +13,18 @@ angular.module('details', ['common'])
       title: "Details"
     });
 
+    Nav.initPreloadView("modal");
+    Nav.startView("modal");
+
     supersonic.device.ready.then( function() {
       console.log("ready for details");
       supersonic.data.channel("DOMReady").publish();
     });
   })
-  .controller("DetailsCtrl", ["$q","$rootScope","$scope","FB","Host","Item","Nav"
-                            ,"Position","supersonic","User",function($q,$rootScope
-                            ,$scope,FB,Host,Item,Nav,Position,supersonic,User) {
+  .controller("DetailsCtrl", ["$q", "$rootScope", "$scope", "FB", "Host", "Item"
+                            ,"Nav", "$mdBottomSheet", "Position", "supersonic"
+                            ,"User", function($q, $rootScope, $scope, FB, Host
+                            ,Item,Nav,$mdBottomSheet,Position,supersonic,User) {
     var buttons = Nav.getButtons();
     var backBtn = Nav.getButton("back");
     var thisView = Nav.parseViewName(steroids.view.location);
@@ -35,6 +38,26 @@ angular.module('details', ['common'])
       item: null,
       userInfo: null,
       userVote: null,
+      change: function() {
+        Nav.getView("modal").then(function(view) {
+          supersonic.ui.layers.replace(view);
+        });
+      },
+      openBottomSheet: function() {
+        var options = {
+          // scope: $scope,
+          controller: "btmSheetCtrl",
+          disableParentScroll: true,
+          // template: $templateCache.get("menu.html")
+          templateUrl: "menu.html"
+        };
+
+        $mdBottomSheet.show(options).then(function() {
+          console.log('show was successful');
+        }, function(y) {
+          console.log('show went wrong');
+        });
+      },
       vote: function(direction) {
         // previous vote exists
         if ($scope.userVote) {
@@ -110,7 +133,6 @@ angular.module('details', ['common'])
       Position._setGeoPoint($rootScope.currentGeoPoint = message.content.geoPoint);
       var qItem = $q.defer();
       $scope.item = Item._getItem();
-      $scope.$digest();
       
       var readyParams = {
         sender: Nav.parseViewName(steroids.view.location),
@@ -124,8 +146,9 @@ angular.module('details', ['common'])
         var itemRef = FB.getRef().child("items").child(message.content.itemId);
         
         Item.retrieveItem(itemRef).then(function(item) {
+          $scope.item = item;
           qItem.resolve(item);
-          Item._setItem($scope.item = item);
+          Item._setItem(item);
         });
         /********************************************************
         *********************************************************
@@ -151,5 +174,7 @@ angular.module('details', ['common'])
           right: _.pluck(_.where(buttons, {side: "right"}), "navBtn")
         }
       });
+
+      $scope.$apply();
     });
   }])

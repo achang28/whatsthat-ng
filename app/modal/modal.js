@@ -20,6 +20,7 @@ angular.module('modal', ['common'])
   .controller('ModalCtrl', ['$q','$rootScope','$scope','Nav','Position','Profile','supersonic'
                         , function($q, $rootScope,$scope,Nav,Position,Profile,supersonic) {
     var thisView = Nav.parseViewName(steroids.view.location);
+    var defaultSubView = "create";
     
     angular.extend($scope, {
       subViews: Nav._getSubViews(),
@@ -36,7 +37,7 @@ angular.module('modal', ['common'])
     });
     
     supersonic.data.channel(thisView +"Data").subscribe( function(message) {
-      Nav.switchSubView("create");
+      // Nav.switchSubView("create");
       Position._setGeoPoint($rootScope.currentGeoPoint = message.content.geoPoint);
       var targetSubView = message.content.targetSubView
       var readyParams = {
@@ -44,9 +45,12 @@ angular.module('modal', ['common'])
         content: {}
       };
 
-      if ($scope.subViews[targetSubView] != true)
+      // if ($scope.subViews[targetSubView] != true)
+      if ( angular.isDefined($scope.subViews[targetSubView]) )
         Nav.switchSubView(targetSubView);
-
+      else 
+        Nav.switchSubView(defaultSubView);
+      
       supersonic.data.channel(thisView +"Ready").publish(readyParams);
       $scope.$digest();
     });
@@ -135,8 +139,6 @@ angular.module('modal', ['common'])
                 signature: s3Data.signature
               };
 
-              
-
               /******************* A D D    I T E M *******************
               *********************************************************
               ********************************************************/
@@ -164,18 +166,30 @@ angular.module('modal', ['common'])
               /********************************************************
               *********************************************************
               ********************************************************/
-
-
-
-
-
-
-
-
-
             });
           }
         });
       }]
+    }
+  })
+  .directive("profile", function() {
+    return {
+      restrict: "EA",
+      scope: true,
+      template: "<div>Profile View</div>",
+      controller: function($scope) {
+        supersonic.ui.views.current.whenVisible(function() {
+          steroids.view.navigationBar.show({
+            title: "Profile"
+          });
+          steroids.view.navigationBar.update({
+            styleClass: "super-navbar",
+            buttons: {
+              left: [],
+              right: []
+            }
+          });
+        });
+      }
     }
   })

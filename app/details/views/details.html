@@ -1,6 +1,6 @@
 <div ng-controller="DetailsCtrl">
   <div class="card">
-    <span class="item item-calm item-divider">
+    <span class="item item-calm item-divider" ng-click="openBottomSheet()">
       {{item.name}}
       <i class="item-note">
         <i class="button-icon super-thumbsup light">{{item.votes.up}}</i>
