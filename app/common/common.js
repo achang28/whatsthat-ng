@@ -1,8 +1,8 @@
 angular.module('common', ['supersonic','Directives','Filters','firebase','ngMaterial'
                         ,'Services','TestData'])
-  .run(['$firebase','$q','$rootScope','FB','Host','Nav','Position','Profile'
-        ,'supersonic','Watcher','$templateCache', function($firebase,$q,$rootScope,FB,Host,Nav
-        ,Position,Profile,supersonic,Watcher,$templateCache) {
+  .run(['$firebaseObject','$q','$rootScope','FB','Host','Nav','Position','Profile'
+        ,'supersonic','Watcher','$templateCache', function($firebaseObject,$q
+        ,$rootScope,FB,Host,Nav,Position,Profile,supersonic,Watcher,$templateCache) {
     var thisView = Nav.parseViewName(steroids.view.location);
     var qUid = $q.defer();
     var _userInfo;
@@ -29,13 +29,9 @@ angular.module('common', ['supersonic','Directives','Filters','firebase','ngMate
     if (authInfo != null) {
       var uid = Profile.substrUid(authInfo.uid);
       var userRef = FB.getRef().child('users').child(uid);
-      var fbUserRef = $firebase(userRef);
-      
-      fbUserRef.$asObject().$loaded().then(function(userInfo) {
+      $firebaseObject(userRef).$loaded().then(function(userInfo) {
         Profile._setParam("userInfo", _userInfo = userInfo);
         $rootScope.qUserInfo.resolve(userInfo);
-
-
       }, function(err) {
         $rootScope.qUserInfo.reject(err);
       });
@@ -124,8 +120,8 @@ angular.module('Services', ['ngSanitize'])
       }
     };
   })
-  .factory("Item", ['$firebase','$q','FB','Profile','Util', function($firebase
-                  ,$q,FB,Profile,Util) {
+  .factory("Item", ['$firebaseObject', '$q', 'FB', 'Profile', 'Util',
+                  function($firebaseObject, $q, FB, Profile, Util) {
     var _items, _item;
     var _rootRef = FB.getRef();
 
@@ -191,9 +187,7 @@ angular.module('Services', ['ngSanitize'])
         /****************** G E T  (1)  I T E M *****************
         *********************************************************
         ********************************************************/
-        var fbItem = $firebase(itemChild.ref()).$asObject();
-        
-        fbItem.$loaded().then(function(item) {
+        $firebaseObject( itemChild.ref() ).$loaded().then(function(item) {
           qItem.resolve(item);
         }, function(error) {
           console.log(error);
@@ -504,8 +498,9 @@ angular.module('Services', ['ngSanitize'])
       }
     };
   }])
-  .factory('Profile', ['$q','$filter','$firebase','$firebaseAuth','$rootScope','FB'
-                      ,function($q,$filter,$firebase,$firebaseAuth,$rootScope,FB) {
+  .factory('Profile', ['$q','$filter','$firebaseArray','$firebaseAuth','$rootScope'
+                      ,'FB',function($q,$filter,$firebaseArray,$firebaseAuth
+                      ,$rootScope,FB) {
     var _params = new Array(10);
     _params["fBAuthRef"] = $firebaseAuth(FB.getRef());
     _params["rememberMe"] = null;
@@ -519,7 +514,7 @@ angular.module('Services', ['ngSanitize'])
       var qSites = $q.defer();
       var orgTypeName = profileService.getOrgTypeName(orgTypeId);
 
-      $firebase( FB.getRef().child(orgTypeName) ).$asArray().$loaded()
+      $firebaseArray( FB.getRef().child(orgTypeName) ).$loaded()
         .then(function(results) {
           var sites = _.filter(results, function(site) {
             return _.contains(siteIds, site.$id)
@@ -578,7 +573,7 @@ angular.module('Services', ['ngSanitize'])
 
       retrieveSite: function(siteId, orgTypeName) {
         var fbSiteRef = FB.getRef().child(orgTypeName).child(siteId);
-        return $firebase(fbSiteRef).$asObject().$loaded();
+        return $firebaseObject(fbSiteRef).$loaded();
       },        
 
       retrieveSites: function(siteIds, orgTypeId) {
@@ -588,7 +583,7 @@ angular.module('Services', ['ngSanitize'])
         var qSites = $q.defer();
         var orgTypeName = this.getOrgTypeName(orgTypeId);
 
-        $firebase( FB.getRef().child(orgTypeName) ).$asArray().$loaded()
+        $firebaseArray( FB.getRef().child(orgTypeName) ).$loaded()
           .then(function(results) {
             var sites = _.filter(results, function(site) {
               return _.contains(siteIds, site.iid);
@@ -671,8 +666,8 @@ angular.module('Services', ['ngSanitize'])
 
     return profileService;
   }])
-  .factory('User', ['$firebase','$q','FB','Profile',function($firebase,$q,FB
-                    ,Profile) {
+  .factory('User', ['$firebaseObject','$q','FB','Profile',function($firebaseObject
+                  ,$q,FB,Profile) {
     var _user;
 
     return {
@@ -682,9 +677,7 @@ angular.module('Services', ['ngSanitize'])
 
       retrieveUser: function(userChild) {
         var qUser = $q.defer();
-        var fbUser = $firebase(userChild.ref()).$asObject();
-        
-        fbUser.$loaded().then(function(user) {
+        $firebaseObject( userChild.ref() ).$loaded().then(function(user) {
           qUser.resolve(user);
         }, function(error) {
           console.log(error);
@@ -749,7 +742,7 @@ angular.module('Services', ['ngSanitize'])
   })
 
 angular.module('TestData', [])
-  .factory('UserData', ['$firebase','$q','FB',function($firebase,$q,FB) {
+  .factory('UserData', ['$firebaseObject','$q','FB',function($firebaseObject,$q,FB) {
     var _users = [
       {
         uid: "1",
@@ -786,9 +779,7 @@ angular.module('TestData', [])
       },
       retrieveUser: function(userChild) {
         var qItem = $q.defer();
-        var fbItem = $firebase(itemChild.ref()).$asObject();
-        
-        fbItem.$loaded().then(function(item) {
+        $firebaseObject( itemChild.ref() ).$loaded().then(function(item) {
           qItem.resolve(item);
         }, function(error) {
           console.log(error);
