@@ -22,7 +22,7 @@ angular.module("Directives", [])
       // scope: true,
       template:
         // '<md-sidenav class="md-sidenav-right md-whiteframe-z2" md-component-id="right" md-is-locked-open="$mdMedia(\'gt-sm\')">'
-        '<md-sidenav class="md-sidenav-right" md-component-id="right">'
+        '<md-sidenav class="md-sidenav-left" md-component-id="left">'
         +'  <md-content class="md-padding">'
         +'    <div ng-click="goToView(\'summary\')" class="md-primary">Requests</div>'
         +'    <div class="md-primary">Assignments</div>'
@@ -40,25 +40,24 @@ angular.module("Directives", [])
           clientImgFilepath: Host.buildFilepath('users', 'avatar'),
           userInfo: null,
           goToView: function(viewName) {
-            $mdSidenav("right").close().then(function() {
-              var options;
+            var options, targetView;
+            
+            if (viewName != "summary") {
+              targetView = "modal";
+              options = Nav.buildOnTapOptions("modalData", "modal", supersonic.ui.layers.push, {
+                targetSubView: viewName,
+                geoPoint: Position.getGeoPoint()
+              });
+            } else {
+              targetView = "summary";
+              options = Nav.buildOnTapOptions("summaryData", "root", supersonic.ui.layers.popAll, {
+                targetSubView: viewName,
+                geoPoint: Position.getGeoPoint()
+              });
+            }
 
-              if (viewName != "summary") {
-                options = Nav.buildOnTapOptions("modalData", "modal", supersonic.ui.layers.push, {
-                  targetSubView: viewName,
-                  geoPoint: Position.getGeoPoint()
-                });
-                
-                Nav.enterView("modal", options);
-              } else {
-                options = Nav.buildOnTapOptions("summaryData", "root", supersonic.ui.layers.popAll, {
-                  targetSubView: viewName,
-                  geoPoint: Position.getGeoPoint()
-                });  
-
-                Nav.enterView("summary", options);
-              }  
-            });
+            Nav.enterView(targetView, options);
+            $mdSidenav("left").close();
           },
           logout: function() {
             Nav.logout();

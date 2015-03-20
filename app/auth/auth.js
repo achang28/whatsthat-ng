@@ -39,9 +39,6 @@ angular.module('auth', ['common'])
         *********************************************************
         ********************************************************/
       },
-      slideHasChanged: function($index) {
-        $ionicSlideBoxDelegate.slide($index, 300);
-      },
       rememberMe: true,
       users: null,
       fbUsers: null

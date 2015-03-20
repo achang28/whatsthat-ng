@@ -13,8 +13,8 @@ angular.module('details', ['common'])
       title: "Details"
     });
 
-    Nav.initPreloadView("modal");
-    Nav.startView("modal");
+    // Nav.initPreloadView("modal");
+    // Nav.startView("modal");
 
     supersonic.device.ready.then( function() {
       console.log("ready for details");

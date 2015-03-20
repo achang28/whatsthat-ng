@@ -6,23 +6,19 @@ angular.module('summary', ['common'])
       qItems: $q.defer()
     });
 
-    // Nav.initPreloadView("details");
+    Nav.initPreloadView("details");
     Nav.initPreloadView("modal");
-
-    supersonic.device.ready.then( function() {
-      console.log("ready for summary");
-      // Nav.startView("details");
-    });
   }])
-  .controller('SummaryCtrl', ['$filter','$firebase','$q','$rootScope','$scope'
-                          ,'FB','Host','Nav','Position','Profile','Item','supersonic'
-                          ,'User','UserData','$mdSidenav','$mdMedia','$templateCache',function($filter,$firebase,$q,$rootScope
-                          ,$scope,FB,Host,Nav,Position,Profile,Item,supersonic,User
-                          ,UserData,$mdSidenav,$mdMedia,$templateCache) {
+  .controller('SummaryCtrl', ['$filter','$firebase','$q','$rootScope','$scope','FB'
+                        ,'Host','Nav','Position','Profile','Item','supersonic','User'
+                        ,'UserData','$mdSidenav','$mdMedia','$templateCache'
+                        ,'$timeout',function($filter,$firebase,$q,$rootScope,$scope
+                        ,FB,Host,Nav,Position,Profile,Item,supersonic,User,UserData
+                        ,$mdSidenav,$mdMedia,$templateCache,$timeout) {
     var buttons = new Array(2);
     var geoInitialized = false;
     var thisView = Nav.parseViewName(steroids.view.location);
-    var x = false;
+    var qModalStarted = $q.defer();
 
     angular.extend($scope, {
       distances: null,
@@ -58,7 +54,7 @@ angular.module('summary', ['common'])
     buttons[1].navBtn.onTap = function() {
       // Nav.logout();
       // $scope.toggleSideMenu();
-      $mdSidenav('right').toggle().then(function(){
+      $mdSidenav('left').toggle().then(function(){
         // $log.debug("toggle RIGHT is done");
         console.log("side nav closed");
       });
@@ -85,6 +81,7 @@ angular.module('summary', ['common'])
     unwatch();
 
     $rootScope.qUserInfo.promise.then(function(userInfo) {
+      Nav.startView("details");
       $scope.userInfo = userInfo;
       var items = Item._getItems();
 
@@ -97,13 +94,15 @@ angular.module('summary', ['common'])
         Item.retrieveItems().then(function(fbItems) {
           $scope.items = fbItems;
           $rootScope.qItems.resolve(fbItems);
+          $timeout(function() {
+            Nav.startView("modal");
+            qModalStarted.resolve();
+          }, 500);
         });
       }
       /********************************************************
       *********************************************************
       ********************************************************/
-
-      Nav.startView("modal");
     });
 
     $scope.openDetails = function(item) {
@@ -119,20 +118,14 @@ angular.module('summary', ['common'])
       title: "Items"
     });
 
-    steroids.view.navigationBar.update({
-      styleClass: "super-navbar",
-      overrideBackButton: true,
-      buttons: {
-        left: _.pluck(_.where(buttons, {side: "left"}), "navBtn"),
-        right: _.pluck(_.where(buttons, {side: "right"}), "navBtn")
-      }
-    });
-
-    supersonic.device.network.whenOffline( function() {
-      console.log("Device is offline!");
-    });
-
-    supersonic.device.network.whenOnline( function() {
-      console.log("Device is ONLINE!");
+    qModalStarted.promise.then(function() {
+      steroids.view.navigationBar.update({
+        styleClass: "super-navbar",
+        overrideBackButton: true,
+        buttons: {
+          left: _.pluck(_.where(buttons, {side: "left"}), "navBtn"),
+          right: _.pluck(_.where(buttons, {side: "right"}), "navBtn")
+        }
+      });
     });
   }])

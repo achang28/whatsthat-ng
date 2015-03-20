@@ -666,6 +666,16 @@ angular.module('Services', ['ngSanitize'])
 
     return profileService;
   }])
+  .factory("Storage", function() {
+    return {
+      getParam: function(item) {
+        return localStorage.getItem(item);
+      },
+      setParam: function(item, value) {
+        localStorage.setItem(item, value);
+      }
+    }
+  })
   .factory('User', ['$firebaseObject','$q','FB','Profile',function($firebaseObject
                   ,$q,FB,Profile) {
     var _user;
